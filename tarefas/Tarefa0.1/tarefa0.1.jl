@@ -8,7 +8,7 @@ Gera uma figura da solução analítica para uma face mantida à temperatura Ts:
     (T(x,t) - T0)/(Ts - T0) = erfc(x / (2√(αt)))
 
 Uso (após instalar as dependências uma única vez):
-    julia --project=. tarefa0.1.jl
+    julia --project=tarefas tarefas/Tarefa0.1/tarefa0.1.jl   (na raiz do repositório)
 
 Dependências: Plots.jl e SpecialFunctions.jl.
 """

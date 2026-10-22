@@ -36,7 +36,7 @@
           buildInputs = [
             pkgs.julia-bin   # binario oficial; o gerenciador de pacotes do
                              # proprio Julia (Pkg) cuida das dependencias no
-                             # Project.toml / Manifest.toml do projeto.
+                             # Project.toml / Manifest.toml de tarefas/.
 
             # Ferramentas de build que alguns pacotes Julia com componente
             # nativo (ex.: os que compilam via BinaryBuilder localmente) pedem:
@@ -57,7 +57,7 @@
             echo "Quarto  $(quarto --version)"
             echo "Node    $(node --version)"
             echo "latexmk $(latexmk -v | grep -o 'Version [^ ]*' | head -1)"
-            echo "-> julia --project=.          (ambiente das tarefas)"
+            echo "-> julia --project=tarefas   (ambiente das tarefas)"
             echo "-> latexmk curso/minicurso_cfd_seguranca.tex   (PDF em build/curso/)"
           '';
         };
