@@ -128,3 +128,66 @@ Outra opção é o `conda-forge`. Conferir de novo a versão na Fase 6.
   `spdx/license-list-data` (`text/CC-BY-SA-4.0.txt`, commit `31ba1a5`,
   16/09/2026), porque o site `creativecommons.org` não estava acessível no
   ambiente de trabalho.
+
+## Fase 1 — verificado em 22/10/2026
+
+### Estrutura dos laboratórios
+
+- `site/labs/comum/`: `grafico.js` (canvas), `equacao.js` (formatação
+  numérica e renderização MathJax com *throttle* de 180 ms), `controles.js`,
+  `tema.js` e `labs.css` (o CSS do protótipo).
+- Uma pasta por laboratório com `solver.js`, `ao-vivo.js` e `pagina.js`.
+  `pagina.js` exporta `montar…()`, que devolve `{ redesenhar, parar }`; assim
+  a mesma peça serve à página avulsa (`site/labs/index.html`) e às páginas
+  Quarto da Fase 3.
+- A página avulsa avisa que o MathJax carregou com o evento
+  `mathjax-pronto` (e `window.__mjok`). Na Fase 3 isso precisa ser ligado ao
+  MathJax que o Quarto carrega.
+
+### MathJax
+
+- O protótipo usa MathJax **3.2.2** (CDN jsDelivr). A versão estável mais
+  recente é a **4.1.3** (03/07/2026). Mantive a 3.2.2 nesta fase para não
+  mudar o comportamento. A migração para a 4.x, ou para a versão que o Quarto
+  embute, fica para a Fase 3.
+- A validação de TeX usa `mathjax-full` 3.2.2 (mesmo parser), com todos os
+  pacotes TeX exceto `noerrors` e `noundefined`: erro de sintaxe ou macro
+  indefinida faz o teste falhar.
+- `npm audit` aponta vulnerabilidades em `@xmldom/xmldom`, dependência de
+  `speech-rule-engine` (acessibilidade do MathJax). É dependência só de
+  desenvolvimento e só processa o TeX gerado pelo próprio repositório.
+
+### Verificação de equivalência com o protótipo
+
+Um roteiro no Chromium (Playwright) aplicou as mesmas 20 ações ao protótipo e
+à página modular e comparou textos, tabela do torneio, pixels de todos os
+canvas e o SVG dos painéis MathJax. Tudo idêntico, exceto as duas
+correções abaixo. Nenhum erro no console.
+
+Correções feitas (mudam o comportamento de propósito):
+
+1. **Painel ao vivo ao parar.** No protótipo, ao fim da animação o painel
+   ficava com a última renderização permitida pelo *throttle*, que podia não
+   ser o estado final. Agora `parar()` renderiza o painel sem *throttle*.
+2. **Largura a 360 px.** No protótipo, a coluna única do grid em telas
+   estreitas (`1fr`) não encolhia abaixo da largura das equações e a página
+   rolava na horizontal (717 px de largura a 360 px). Com `minmax(0,1fr)` a
+   página tem 360 px e as equações rolam dentro do próprio quadro.
+
+### Testes (`npm test`, 25 testes)
+
+Ordens observadas na difusão (seno, t = 0,1):
+
+| Esquema | Refinamento | Erro máximo | Ordem |
+|---|---|---|---|
+| FTCS, r = 0,4 fixo | N = 20, 40, 80 | 1,06e-3 → 6,62e-5 | 2,00 em Δx (1 em Δt) |
+| BTCS, Δt ∝ Δx | N = 40, 80, 160 | 1,76e-2 → 4,50e-3 | 0,98 |
+| Crank–Nicolson, Δt ∝ Δx | N = 40, 80, 160 | 1,10e-4 → 6,84e-6 | 2,00 |
+
+Também: TDMA contra eliminação de Gauss; um passo multiplica cada modo
+discreto exatamente por G(kΔx) nos três esquemas; upwind com C = 1 desloca
+uma célula por passo (até o arredondamento: u − (u − v) nem sempre é v em
+ponto flutuante); TVD dentro de [0, 1] e sem aumentar a variação total;
+conservação da soma a 1e-12; fluxo de massa da pluma igual a Q a 1e-6, com
+reflexão no solo; editor de código com e sem erro.
+
