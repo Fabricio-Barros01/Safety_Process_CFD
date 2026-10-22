@@ -52,7 +52,11 @@ export function montarAdveccao() {
     requestAnimationFrame(laco);
   }
 
-  function parar() { A.rodando = false; $("#adv-play").textContent = "Rodar"; }
+  // Ao parar, renderiza o painel ao vivo sem throttle para mostrar o estado final.
+  function parar() {
+    A.rodando = false; $("#adv-play").textContent = "Rodar";
+    if (A.u) renderizar("adv-live", texAdveccao({ esq: A.esq, C: A.C, u: A.u, passo: A.passo }), true);
+  }
 
   function compilar() {
     const r = compilarCodigo($("#adv-code").value);

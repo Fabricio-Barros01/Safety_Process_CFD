@@ -56,7 +56,8 @@ export function montarDifusao() {
     requestAnimationFrame(laco);
   }
 
-  function parar() { rodando = false; $("#dif-play").textContent = "Rodar"; }
+  // Ao parar, renderiza o painel ao vivo sem throttle para mostrar o estado final.
+  function parar() { rodando = false; $("#dif-play").textContent = "Rodar"; if (E) renderizar("dif-live", texDifusao(E), true); }
 
   $("#dif-play").onclick = () => {
     if (rodando) { parar(); return; }
