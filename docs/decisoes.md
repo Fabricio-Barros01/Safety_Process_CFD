@@ -9,11 +9,11 @@ publicação conferidas nas *tags* dos repositórios oficiais.
 
 O `flake.lock` continua fixado no commit `fd14620` do canal `nixos-26.05`
 (19/07/2026), o mesmo que o autor já usava. Não foi atualizado: o Julia desse
-commit (1.12.6) é o registrado no `Manifest.toml` da raiz.
+commit (1.12.6) é o registrado em `tarefas/Manifest.toml`.
 
 | Ferramenta | Versão no devShell | Observação |
 |---|---|---|
-| Julia (`julia-bin`) | 1.12.6 | igual ao `Manifest.toml` |
+| Julia (`julia-bin`) | 1.12.6 | igual a `tarefas/Manifest.toml` |
 | Quarto (`quarto`) | 1.9.37 | ver “Quarto” abaixo |
 | TeX Live | `texliveSmall` + pacotes extras | latexmk 4.87 |
 | Node.js (`nodejs_24`) | 24.18.0 | linha LTS ativa |
@@ -40,10 +40,9 @@ aumenta o primeiro download do `devShell`. Não afeta o uso.
 - Última versão estável: **1.10.19**, publicada em 06/10/2026. As *tags*
   `v1.11.x` são pré-lançamentos.
 - O nixpkgs 26.05 fixado traz a **1.9.37**.
-- **Decisão pendente:** na Fase 5, o CI pode (a) usar o mesmo `devShell` do
-  Nix, garantindo a mesma versão local e no CI (1.9.37), ou (b) instalar a
-  1.10.19 com a Action oficial do Quarto, e então local e CI diferem.
-  Recomendo (a).
+- **Decidido (22/10/2026):** o CI da Fase 5 usa o mesmo `devShell` do Nix,
+  com a mesma versão do Quarto local e no CI (1.9.37). A versão sobe junto com
+  o `flake.lock`.
 
 ### Pluto, PlutoSliderServer e Binder
 
@@ -82,13 +81,16 @@ Pluto 1.0.4, `src/notebook/Export.jl` e `frontend/common/Binder.js`):
 6. Na primeira abertura, o Binder ainda instala e pré-compila os pacotes do
    notebook. Com `Plots` isso pode levar vários minutos.
 
-Propostas para a Fase 4 (dependem de aprovação):
+Decidido para a Fase 4 (22/10/2026):
 
 - os notebooks trazem o código que usam (o solver do exercício fica no próprio
   notebook); nada de `using CFDSeguranca`;
-- os notebooks são gravados e exportados com Julia 1.10 (a mesma do Binder),
-  via `juliaup` ou `nix shell` com `julia_110-bin`, para o Manifest embutido
-  funcionar sem resolver de novo;
+- os notebooks são gravados e exportados com Julia 1.10, a mesma linha do
+  Binder. O nixpkgs fixado tem `julia_110-bin` 1.10.11; o Binder roda 1.10.12.
+  Diferenças de *patch* dentro da 1.10 não invalidam o Manifest.
+
+Ainda em aberto para a Fase 4:
+
 - medir o tempo de abertura com `Plots` e, se passar do aceitável, avaliar um
   pacote de gráficos mais leve ou um *fork* próprio de `pluto-on-binder` com os
   pacotes pré-instalados (`Export.binder_url`). O *fork* é mais rápido para o
@@ -112,8 +114,17 @@ Outra opção é o `conda-forge`. Conferir de novo a versão na Fase 6.
 - O repositório se chama `Safety_Process_CFD`, não `cfd-seguranca` como no
   plano. O site publicado ficará em
   `https://fabricio-barros01.github.io/Safety_Process_CFD/`.
-- O `Project.toml`, o `Manifest.toml` e a pasta `Tarefa0.1/` da raiz são o
-  ambiente das tarefas do autor e foram mantidos como estavam. O pacote de
-  referência fica separado em `julia/CFDSeguranca/` (Fase 2).
+- As tarefas do autor e o ambiente Julia delas (`Project.toml`,
+  `Manifest.toml`) ficam em `tarefas/`; rodar com `julia --project=tarefas`.
+  O pacote de referência fica separado em `julia/CFDSeguranca/` (Fase 2).
 - A saída do `latexmk` vai para `build/curso/` (configurado em `.latexmkrc`)
   e fica fora do Git.
+
+### Licenças (decidido em 22/10/2026)
+
+- Código: MIT (`LICENSE`).
+- Texto do curso (`curso/`) e conteúdo textual do site: CC BY-SA 4.0
+  (`LICENSE-CC-BY-SA-4.0.txt`). O texto da licença foi copiado de
+  `spdx/license-list-data` (`text/CC-BY-SA-4.0.txt`, commit `31ba1a5`,
+  16/09/2026), porque o site `creativecommons.org` não estava acessível no
+  ambiente de trabalho.

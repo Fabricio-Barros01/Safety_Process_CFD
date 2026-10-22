@@ -12,7 +12,7 @@ verificadas estão em [`docs/decisoes.md`](docs/decisoes.md).
 
 - Nix com *flakes* (recomendado): `nix develop` fornece Julia 1.12, Quarto,
   TeX Live, Node.js 24 e Python 3.
-- Sem Nix: Julia 1.12 (versão registrada no `Manifest.toml`: 1.12.6), uma
+- Sem Nix: Julia 1.12 (versão registrada em `tarefas/Manifest.toml`: 1.12.6), uma
   distribuição TeX com `latexmk`, Quarto e Node.js LTS.
 
 ## Uso
@@ -32,11 +32,12 @@ latexmk curso/minicurso_cfd_seguranca.tex
 Rodar uma tarefa em Julia, na raiz do repositório:
 
 ```bash
-julia --project=. -e 'using Pkg; Pkg.instantiate()' && julia --project=. Tarefa0.1/tarefa0.1.jl
+julia --project=tarefas -e 'using Pkg; Pkg.instantiate()' && julia --project=tarefas tarefas/Tarefa0.1/tarefa0.1.jl
 ```
 
-O primeiro comando instala as versões exatas listadas no `Manifest.toml`. O
-segundo gera `Tarefa0.1/difusao_meio_semiinfinito.png`.
+O primeiro comando instala as versões exatas listadas em
+`tarefas/Manifest.toml`. O segundo gera
+`tarefas/Tarefa0.1/difusao_meio_semiinfinito.png`.
 
 O protótipo dos laboratórios abre direto no navegador:
 `prototipo/laboratorio_cfd.html`.
@@ -47,7 +48,7 @@ O protótipo dos laboratórios abre direto no navegador:
 |---|---|
 | `curso/` | Fonte LaTeX do curso (17 módulos + Oficina de Julia) |
 | `prototipo/` | Protótipo dos laboratórios de difusão, advecção e pluma (referência para a Fase 1) |
-| `Tarefa0.1/` | Solução analítica da difusão em meio semi-infinito (`erfc`) |
+| `tarefas/` | Tarefas do curso resolvidas pelo autor e o ambiente Julia delas; `Tarefa0.1/` traz a solução analítica da difusão em meio semi-infinito (`erfc`) |
 | `site/` | Projeto Quarto do site e JavaScript dos laboratórios (a partir da Fase 1) |
 | `julia/` | Pacote de referência `CFDSeguranca.jl` (Fase 2) |
 | `notebooks/` | Notebooks Pluto, um por tarefa (Fase 4) |
@@ -59,11 +60,11 @@ O protótipo dos laboratórios abre direto no navegador:
 
 ## Dependências das tarefas
 
-Plots, SpecialFunctions e BenchmarkTools, com versões fixadas no
-`Manifest.toml` da raiz.
+Plots, SpecialFunctions e BenchmarkTools, com versões fixadas em
+`tarefas/Manifest.toml`.
 
 ## Licenças
 
 - Código: MIT (ver `LICENSE`).
-- Texto do curso e conteúdo do site: a definir pelo autor (proposta:
-  CC BY-SA 4.0).
+- Texto do curso e conteúdo do site: CC BY-SA 4.0 (ver
+  `LICENSE-CC-BY-SA-4.0.txt`).
