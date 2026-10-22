@@ -1,0 +1,3795 @@
+%% ======================================================================
+%%  Minicurso: CFD Aplicado à Segurança de Processos
+%%  Dispersão de gases, incêndios e explosões --- do zero ao avançado
+%%  Compilar com: pdflatex (2x)
+%% ======================================================================
+\documentclass[10pt,a4paper,twocolumn,openany]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=1.7cm,columnsep=0.65cm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs,tabularx,array,longtable}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{truncate}
+\usepackage[colorlinks=true,linkcolor=azul,urlcolor=azul,citecolor=azul]{hyperref}
+
+% ---------------------------------------------------------------- cores
+\definecolor{azul}{RGB}{25,70,115}
+\definecolor{azulclaro}{RGB}{232,240,250}
+\definecolor{verde}{RGB}{30,110,60}
+\definecolor{verdeclaro}{RGB}{233,246,237}
+\definecolor{laranja}{RGB}{190,95,10}
+\definecolor{laranjaclaro}{RGB}{253,242,228}
+\definecolor{roxo}{RGB}{105,45,130}
+\definecolor{roxoclaro}{RGB}{243,234,248}
+\definecolor{cinza}{RGB}{90,90,90}
+\definecolor{cinzaclaro}{RGB}{242,242,242}
+\definecolor{vermelho}{RGB}{160,30,30}
+\definecolor{vermelhoclaro}{RGB}{251,234,234}
+\definecolor{amarelo}{RGB}{160,120,0}
+\definecolor{amareloclaro}{RGB}{255,249,225}
+
+% ---------------------------------------------------------------- estilos
+% Única caixa do documento: as tarefas (entregáveis). O resto é texto corrido.
+\tcbset{enhanced,breakable,fonttitle=\bfseries,sharp corners,boxrule=0.5pt,
+        left=2mm,right=2mm,top=1.2mm,bottom=1.2mm,before skip=10pt,after skip=10pt}
+\newtcolorbox[auto counter,number within=chapter]{tarefa}[1]{colback=verdeclaro,
+  colframe=verde,title={Tarefa~\thetcbcounter\ --- #1}}
+
+\titleformat{\section}{\normalfont\large\bfseries\color{azul}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries\color{azul}}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus 1ex minus .3ex}{1ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus .8ex minus .3ex}{0.6ex}
+
+\newcommand{\lead}[2]{\par\medskip\noindent{\color{#1}\bfseries #2}\ }
+\newenvironment{conceito}[1]{\section{#1}}{\par}
+\newenvironment{professor}{\lead{laranja}{Nota do professor.}\itshape}{\par\medskip}
+\newenvironment{armadilha}{\lead{vermelho}{Armadilha clássica.}}{\par\medskip}
+\newenvironment{dicionario}[1][Dicionário da equação]{\lead{azul}{#1.}\small}{\par\medskip}
+\newenvironment{critico}{\subsection*{\textcolor{roxo}{Pensamento crítico}}}{\par}
+\newenvironment{chaves}{\lead{cinza}{Palavras-chave (PT/EN):}\small}{\par}
+\newenvironment{refs}{\subsection*{Referências do módulo}\small}{\par}
+\newenvironment{aprofundar}{\subsection*{\textcolor{amarelo}{Para se aprofundar}}\small}{\par}
+\newcommand{\origem}{\par\smallskip\noindent\textcolor{azul}{\textbf{De onde vem?}}\ }
+
+\newcommand{\enunciado}{\noindent\textbf{Enunciado.}\ }
+\newcommand{\entregaveis}{\par\medskip\noindent\textbf{Entregáveis:}}
+\newcommand{\criterio}{\par\medskip\noindent\textbf{Critério de sucesso:}\ }
+\newcommand{\reflexao}{\par\medskip\noindent\textbf{Reflexão obrigatória (escreva no diário):}}
+\newcommand{\objetivos}{\noindent\textbf{Ao final deste módulo você será capaz de:}}
+
+% ---------------------------------------------------------------- código
+\lstdefinelanguage{Julia}{
+  morekeywords={function,end,for,in,if,else,elseif,while,return,using,import,
+    module,struct,mutable,begin,let,const,local,global,do,true,false},
+  sensitive=true, morecomment=[l]{\#}, morestring=[b]"}
+\lstset{language=Julia,basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{azul}\bfseries,commentstyle=\color{gray}\itshape,
+  stringstyle=\color{BrickRed},frame=leftline,rulecolor=\color{azul!40},framerule=1.2pt,
+  breaklines=true,columns=fullflexible,backgroundcolor=\color{gray!5},
+  numbers=left,numberstyle=\tiny\color{gray},xleftmargin=1.3em,
+  showstringspaces=false}
+
+% ---------------------------------------------------------------- layout
+\setlist{itemsep=2pt,topsep=4pt}
+\raggedbottom
+\makeatletter\setlength{\@fptop}{0pt}\setlength{\@dblfptop}{0pt}\makeatother
+\setlength{\emergencystretch}{2.5em}
+\addto\captionsbrazil{\renewcommand{\chaptername}{Módulo}}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{cinza}\leftmark}
+\fancyhead[R]{\small\color{cinza}CFD para Segurança de Processos}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter\ --- #1}{}}
+\fancyhead[L]{\small\color{cinza}\nouppercase{\truncate{0.62\textwidth}{\leftmark}}}
+
+\hypersetup{pdftitle={Minicurso: CFD Aplicado à Segurança de Processos},
+            pdfauthor={Minicurso autodirigido}}
+
+\setcounter{tocdepth}{0}
+\begin{document}
+
+% ====================================================================== CAPA
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+{\color{azul}\rule{\linewidth}{1.5pt}}\\[0.6cm]
+{\Huge\bfseries\color{azul} CFD Aplicado à\\[0.2cm] Segurança de Processos\par}
+\vspace{0.4cm}
+{\Large Dispersão de gases, incêndios e explosões\\ --- do zero ao avançado ---\par}
+{\color{azul}\rule{\linewidth}{1.5pt}}\\[1.2cm]
+{\large Minicurso autodirigido, orientado a entregáveis\par}
+\vspace{0.6cm}
+{\normalsize Teoria $\cdot$ Análise numérica $\cdot$ Programação $\cdot$
+Validação $\cdot$ Prática industrial offshore\par}
+\vfill
+\begin{minipage}{0.8\linewidth}\small
+\textcolor{azul}{\textbf{Como ler este documento.}} Cada módulo traz objetivos,
+teoria, dicionário das equações, palavras-chave, referências, leituras
+comentadas, notas do professor, perguntas de pensamento crítico e
+\textbf{tarefas com entregáveis}. Não avance de módulo sem fechar os
+entregáveis do anterior: CFD é uma pirâmide, e a base é análise numérica.
+\end{minipage}
+\vspace{1cm}
+{\small Versão 1.0 --- outubro de 2026\par}
+\end{titlepage}
+
+\tableofcontents
+
+% ====================================================================== PREFÁCIO
+\chapter*{Antes de começar: uma conversa franca}
+\addcontentsline{toc}{chapter}{Antes de começar: uma conversa franca}
+\markboth{Antes de começar}{}
+
+Depois de muitos anos ensinando CFD para engenheiros de segurança de processos,
+aprendi que existem dois tipos de alunos que fracassam. O primeiro acredita que
+CFD é ``apertar o botão do software'': monta a geometria, escolhe o
+$k$-$\varepsilon$ porque ``todo mundo usa'', gera um contorno colorido e o
+coloca no relatório. O segundo se perde na matemática, passa meses
+otimizando um solver de Poisson e nunca chega a perguntar \emph{qual decisão de
+engenharia aquele número vai suportar}.
+
+Este minicurso foi desenhado para evitar os dois fracassos. Você vai
+\textbf{programar} os blocos fundamentais com as próprias mãos (porque só
+entende um esquema numérico quem já o viu explodir), e vai \textbf{conectar
+cada bloco a uma pergunta real de segurança}: até onde vai a nuvem
+inflamável? Onde coloco os detectores? Qual a sobrepressão de projeto de um
+módulo de processo de FPSO? Qual o fluxo térmico que a parede corta-fogo
+precisa suportar?
+
+\section*{Filosofia do curso}
+\begin{enumerate}
+  \item \textbf{Entregável ou não aconteceu.} Cada teoria termina em uma tarefa
+        com produto concreto: código, gráfico, tabela, nota técnica curta.
+  \item \textbf{Do analítico ao numérico ao industrial.} Sempre que possível,
+        compare sua simulação com uma solução analítica ou experimental antes
+        de confiar nela.
+  \item \textbf{O erro é o professor.} Você será instruído a quebrar seus
+        próprios códigos de propósito (instabilidade, malha grossa, condição de
+        contorno errada). Registre o que viu.
+  \item \textbf{Ceticismo saudável.} Todo resultado de CFD é uma hipótese
+        sobre a realidade, condicionada a dezenas de escolhas. Aprender a
+        listar essas escolhas é metade da competência profissional.
+\end{enumerate}
+
+\section*{Estrutura de cada módulo}
+\begin{itemize}
+  \item \textbf{Objetivos} --- o que você saberá fazer ao final.
+  \item \textbf{Teoria} em seções numeradas --- o mínimo rigoroso.
+  \item \textbf{Palavras-chave} em português e inglês --- a literatura é quase
+        toda em inglês; aprenda o vocabulário para buscar artigos.
+  \item \textbf{Tarefas} --- enunciado, entregáveis, critério de sucesso e
+        reflexão obrigatória. São o único elemento em caixa, para que você as
+        encontre rapidamente.
+  \item \textbf{Notas do Professor} e \textbf{Armadilhas clássicas} --- o que
+        os livros raramente dizem.
+  \item \textbf{Pensamento Crítico} --- perguntas sem resposta única, para o
+        diário de bordo e para discussão com colegas e orientadores.
+  \item \textbf{Dicionário da equação} --- o significado e a unidade de cada
+        símbolo, e \emph{de onde veio} a equação (quem, quando, a partir de
+        qual raciocínio).
+  \item \textbf{Referências} --- livros-texto, artigos seminais e normas.
+  \item \textbf{Para se aprofundar} --- leituras comentadas: o que ler, em que
+        ordem, e por quê.
+\end{itemize}
+
+\section*{Ferramentas recomendadas}
+\begin{itemize}
+  \item \textbf{Linguagem principal:} Julia --- se você nunca a usou, faça
+        antes a \emph{Oficina J} (logo após o Módulo 0). Julia oferece desempenho próximo de C com
+        sintaxe de alto nível; ótimo para os solvers próprios). Python
+        (NumPy/SciPy/Matplotlib) é aceitável. Rust é recomendado no projeto
+        final para os pós-processadores que você queira transformar em
+        ferramenta de produção.
+  \item \sloppy\textbf{Pacotes Julia úteis:} \texttt{Plots.jl} ou \texttt{Makie.jl},
+        \texttt{LinearAlgebra}, \texttt{SparseArrays},
+        \texttt{DifferentialEquations.jl}, \texttt{JuMP.jl} + \texttt{HiGHS.jl},
+        \texttt{BenchmarkTools.jl}.
+  \item \textbf{Código aberto industrial:} OpenFOAM (dispersão, escoamentos
+        reativos), FDS --- \emph{Fire Dynamics Simulator} do NIST (incêndios),
+        Cantera (cinética e propriedades de chama), ParaView (visualização).
+  \item \textbf{Comerciais de referência (para conhecer):} FLACS (Gexcon),
+        KFX (DNV), Ansys Fluent/CFX, PHAST (modelos integrais, DNV).
+  \item \textbf{Gestão:} Git desde o primeiro dia; um \emph{diário de bordo}
+        (Markdown ou caderno) com data, o que tentou, o que deu errado e o que
+        aprendeu.
+\end{itemize}
+
+\section*{Estrutura de repositório sugerida}
+\begin{lstlisting}[language={},numbers=none]
+cfd-seguranca/
+  Project.toml     # ambiente Julia
+  README.md        # mapa e status
+  diario/          # 1 entrada/sessao
+  moduloJ_julia/
+  modulo01_edp/    # codigo+figuras
+  ...
+  modulo16_projeto/
+  lib/             # funcoes comuns
+  dados/           # validacao
+\end{lstlisting}
+
+% ====================================================================== MAPA
+\section*{Mapa do curso e cronograma sugerido}
+O mapa completo está na tabela de página inteira a seguir. Cada linha traz a
+pergunta de segurança que o módulo ajuda a responder --- volte a ela sempre
+que perder o fio da meada.
+
+\begin{table*}[!t]
+\centering\small
+\begin{tabularx}{\textwidth}{@{}clXcc@{}}
+\toprule
+Mód. & Tema & Pergunta de segurança que ele responde & Nível & Semanas\\
+\midrule
+0  & Preparação & Que física mata pessoas em acidentes de processo? & Básico & 1\\
+J  & Oficina de Julia & Como transformar equações em código rápido e confiável? & Básico & 1--2\\
+1  & EDPs e diferenças finitas & Posso confiar num número que saiu de um computador? & Básico & 1--2\\
+2  & Advecção e difusão numérica & Por que minha pluma ``espalha'' demais? & Básico & 1--2\\
+3  & Volumes finitos & Meu código conserva massa de gás vazado? & Básico & 2\\
+4  & Navier--Stokes incompressível & Como o vento contorna equipamentos? & Interm. & 2--3\\
+5  & Turbulência & Quanto o modelo de turbulência muda a nuvem? & Interm. & 2--3\\
+6  & Camada limite atmosférica & Qual vento e estabilidade simular? & Interm. & 2\\
+7  & Termodinâmica da fonte & Quanto gás sai, e como representar o jato? & Interm. & 2\\
+8  & Jatos, gás denso, nuvens & Qual o volume inflamável equivalente? & Avanç. & 3\\
+9  & Detecção de gás & Onde posicionar detectores? & Avanç. & 2\\
+10 & Fundamentos de combustão & Quão reativa é esta mistura? & Interm. & 2\\
+11 & Incêndios e radiação & Qual fluxo térmico chega ao alvo? & Avanç. & 3\\
+12 & Explosões: fenomenologia & Que sobrepressão esperar (estimativa)? & Avanç. & 2--3\\
+13 & CFD de explosões & Qual a carga acidental de projeto? & Avanç. & 3\\
+14 & V\&V e incerteza & Quão errado posso estar? & Avanç. & 2\\
+15 & Do CFD ao QRA & Quando o CFD vale o custo? & Avanç. & 1--2\\
+16 & Projeto final integrado & Tudo junto, num módulo de FPSO & Síntese & 4--6\\
+\bottomrule
+\end{tabularx}
+\par\smallskip{\small\textbf{Mapa do curso e cronograma sugerido.}}
+\end{table*}
+
+\begin{professor}
+O cronograma assume de 6 a 10 horas semanais. Se você trabalha em tempo
+integral, não se culpe por estender os módulos 4, 5 e 13: são os que mais
+exigem maturação. O que eu \emph{não} aceito é pular os módulos 1 a 3. Já vi
+engenheiros experientes defendendo resultados de dispersão em auditoria sem
+saber explicar o que é difusão numérica --- e vi a credibilidade do estudo
+inteiro desabar em cinco minutos.
+\end{professor}
+
+% ======================================================================
+\part{Fundamentos numéricos}
+% ======================================================================
+
+\setcounter{chapter}{-1}
+\chapter{Preparação: a física dos acidentes}
+
+\objetivos
+\begin{itemize}
+  \item Montar o ambiente de trabalho e o hábito do diário de bordo.
+  \item Reconhecer, em acidentes reais, a sequência
+        \emph{liberação $\rightarrow$ dispersão $\rightarrow$ ignição
+        $\rightarrow$ incêndio/explosão $\rightarrow$ escalonamento}.
+  \item Mapear cada elo dessa cadeia a um módulo do curso.
+\end{itemize}
+
+\begin{conceito}{A cadeia de eventos de um acidente de processo}
+Quase todo grande acidente com hidrocarbonetos segue o mesmo esqueleto:
+\begin{enumerate}
+  \item \textbf{Perda de contenção} (furo, ruptura, falha de flange) --- termodinâmica
+        e escoamento compressível (Módulo 7).
+  \item \textbf{Dispersão} do material, formando uma nuvem inflamável ou tóxica ---
+        transporte turbulento, camada limite atmosférica, efeitos de
+        flutuabilidade (Módulos 3--8).
+  \item \textbf{Detecção e ação} (ou falha delas) --- posicionamento de
+        detectores, tempos de resposta (Módulo 9).
+  \item \textbf{Ignição} imediata (incêndio em jato, poça) ou retardada
+        (\emph{flash fire}, explosão de nuvem) --- combustão (Módulo 10).
+  \item \textbf{Efeitos}: radiação térmica (Módulo 11), sobrepressão
+        (Módulos 12--13).
+  \item \textbf{Escalonamento}: falha de outras barreiras, novos vazamentos,
+        efeito dominó.
+\end{enumerate}
+A Análise Quantitativa de Risco (QRA) combina \emph{frequência} e
+\emph{consequência} de muitos cenários dessa cadeia (Módulo 15).
+\end{conceito}
+
+\begin{tarefa}{Ambiente e primeiro gráfico}
+\enunciado Instale Julia (ou Python), um pacote de gráficos, Git, ParaView e
+--- em ambiente Linux ou contêiner --- OpenFOAM e FDS. Plote a solução
+analítica da difusão em meio semi-infinito com temperatura imposta na face:
+\[
+  \frac{T(x,t)-T_0}{T_s-T_0} = \operatorname{erfc}\!\left(\frac{x}{2\sqrt{\alpha t}}\right)
+\]
+para quatro instantes de tempo.
+\entregaveis
+\begin{itemize}
+  \item Repositório Git criado com a estrutura sugerida e um README.
+  \item Script que gera a figura (eixos com unidades, legenda).
+  \item Primeira entrada no diário: seus objetivos com o curso.
+\end{itemize}
+\criterio a figura é reproduzida por qualquer pessoa clonando o repositório
+e executando um único comando.
+\reflexao\ Por que a solução depende só da combinação $x/\sqrt{\alpha t}$
+(variável de similaridade)? O que isso diz sobre como uma frente de difusão
+avança no tempo?
+\end{tarefa}
+
+\begin{tarefa}{Autópsia de acidentes}
+\enunciado Leia os resumos (e, se possível, trechos dos relatórios oficiais)
+de \textbf{Piper Alpha} (1988) e \textbf{Buncefield} (2005). Para cada um,
+preencha uma tabela com: material liberado, mecanismo de liberação, como a
+nuvem se formou, fonte de ignição provável, tipo de efeito (jato de fogo,
+poça, explosão, \emph{flash fire}) e que barreiras falharam.
+\entregaveis
+\begin{itemize}
+  \item Tabela comparativa (1 página).
+  \item Para cada linha da tabela, indique qual módulo deste curso trata a
+        física correspondente.
+\end{itemize}
+\criterio você consegue explicar a sequência de cada acidente em dois minutos,
+usando os termos técnicos corretos.
+\reflexao\ Em Buncefield, a sobrepressão observada foi muito superior ao
+que os métodos de avaliação da época previam para uma área considerada
+``pouco congestionada''. O que isso ensina sobre as hipóteses embutidas em
+modelos de consequência?
+\end{tarefa}
+
+\begin{critico}
+\begin{itemize}
+  \item Se CFD fosse perfeito, ainda precisaríamos de QRA? E se a QRA fosse
+        perfeita, ainda precisaríamos de CFD?
+  \item O que é mais perigoso: um modelo simples cujas limitações você
+        conhece, ou um modelo sofisticado cujas limitações você ignora?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+perda de contenção / \emph{loss of containment}; cenário acidental /
+\emph{accident scenario}; escalonamento / \emph{escalation}; efeito dominó /
+\emph{domino effect}; análise de consequências / \emph{consequence analysis};
+QRA / \emph{quantitative risk assessment}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Cullen, W. D. \emph{The Public Inquiry into the Piper Alpha Disaster}. HMSO, 1990.
+  \item Buncefield Major Incident Investigation Board. \emph{The Buncefield Incident 11 December 2005 --- Final Report}, 2008.
+  \item Crowl, D. A.; Louvar, J. F. \emph{Chemical Process Safety: Fundamentals with Applications}. 4.\,ed. Pearson, 2019.
+  \item Mannan, S. (ed.). \emph{Lees' Loss Prevention in the Process Industries}. 4.\,ed. Butterworth-Heinemann, 2012.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Kletz, T.} \emph{What Went Wrong? Case Histories of Process Plant Disasters}. 5.\,ed. Butterworth-Heinemann, 2009. Centenas de casos curtos; leia um por dia durante o curso.
+  \item \textbf{Hopkins, A.} \emph{Failure to Learn: The BP Texas City Refinery Disaster}. CCH, 2008. Mostra como fatores organizacionais anulam boas análises técnicas.
+  \item \textbf{Vídeos do U.S. CSB} (\url{https://www.csb.gov}). Animações de investigações reais; ótimos para visualizar a cadeia liberação--ignição--efeito.
+  \item \textbf{Atherton, J.; Gil, F.} \emph{Incidents That Define Process Safety}. CCPS/Wiley, 2008.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\renewcommand{\thechapter}{J}
+\renewcommand{\theHchapter}{J}
+\chapter{Oficina de Julia para iniciantes}
+
+\begin{professor}
+Antes de discretizar qualquer equação, você precisa de uma ferramenta em que
+confie. Já vi alunos brilhantes em física travarem por semanas porque não
+sabiam por que o código estava 100 vezes mais lento que o esperado, ou por
+que um vetor ``mudou sozinho''. Esta oficina existe para que isso não
+aconteça com você. Não pule: ela vai economizar dezenas de horas nos módulos
+seguintes.
+\end{professor}
+
+\objetivos
+\begin{itemize}
+  \item Instalar Julia, usar o REPL e criar ambientes reprodutíveis.
+  \item Dominar vetores, matrizes, \emph{broadcasting} e funções.
+  \item Entender tipos e \emph{dispatch} múltiplo --- e usá-los para
+        organizar esquemas numéricos.
+  \item Escrever código rápido: estabilidade de tipo, pré-alocação,
+        \emph{benchmarks}.
+  \item Testar código numérico com \texttt{Test}.
+\end{itemize}
+
+\begin{conceito}{Por que Julia para CFD?}
+O ``problema das duas linguagens'': prototipa-se em Python ou MATLAB
+(fácil, lento em laços) e reescreve-se em C/Fortran (rápido, trabalhoso).
+Julia compila cada função para código de máquina na primeira chamada
+(\emph{JIT}, via LLVM), especializada para os tipos dos argumentos. Resultado:
+\textbf{laços explícitos são rápidos}, e você escreve um solver de volumes
+finitos ``como no livro'', sem truques de vetorização.
+
+O preço: a primeira execução de cada função é mais lenta (tempo de
+compilação), e alguns hábitos de Python levam a código lento em Julia.
+\end{conceito}
+
+\begin{dicionario}[Vocabulário de Julia]
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{REPL} --- terminal interativo (\emph{Read-Eval-Print Loop}).
+  \item \textbf{JIT} --- compilação ``no momento'' (\emph{just-in-time}).
+  \item \textbf{LLVM} --- infraestrutura de compiladores usada também por
+        Clang (C/C++) e Rust.
+  \item \textbf{Dispatch múltiplo} --- a função executada é escolhida pelos
+        tipos de \emph{todos} os argumentos.
+  \item \textbf{Estabilidade de tipo} --- o tipo do resultado depende só dos
+        tipos das entradas, não dos valores. Condição para código rápido.
+  \item \textbf{Broadcasting} --- aplicar uma operação elemento a elemento
+        com o ponto: \texttt{f.(x)}, \texttt{a .+ b}.
+\end{itemize}
+\origem Julia foi criada no MIT por Jeff Bezanson, Stefan Karpinski, Viral
+Shah e Alan Edelman, a partir de 2009; anunciada publicamente em 2012
+(``\emph{Why We Created Julia}'') e estabilizada na versão 1.0 em 2018.
+\end{dicionario}
+
+\begin{conceito}{Instalação, REPL e modos}
+Instale pelo \texttt{juliaup} (gerenciador oficial de versões). No REPL:
+\begin{itemize}[nosep]
+  \item \texttt{]} --- modo de pacotes (\texttt{add}, \texttt{status}, \texttt{activate}).
+  \item \texttt{?} --- ajuda: \texttt{?sum} mostra a documentação.
+  \item \texttt{;} --- terminal do sistema.
+  \item \texttt{Backspace} --- volta ao modo normal.
+\end{itemize}
+Para scripts: \texttt{julia --project=. meu\_script.jl}. Editor recomendado:
+VS Code com a extensão oficial de Julia. Para trabalho interativo, o pacote
+\texttt{Revise.jl} recarrega o código ao salvar.
+\end{conceito}
+
+\begin{lstlisting}[caption={Primeiros passos: tipos, strings e vetores}]
+x = 3            # Int64
+y = 3.0          # Float64
+typeof(x / 2)    # Float64: "/" sempre da real
+div(7, 2)        # 3 (divisao inteira)
+2^63             # ESTOURA em silencio (Int64)!
+big(2)^63        # BigInt resolve
+
+gas = "metano"
+println("LFL do $gas = $(5.0) %vol")
+
+u = [1.0, 2.0, 3.0]  # vetor
+u[1], u[end]         # indice comeca em 1
+xs = range(0, 1, length=11)
+A = zeros(3, 3)      # matriz 3x3
+linha = A[2, :]      # COPIA da linha 2
+@views l2 = A[2, :]  # visao, sem copia
+\end{lstlisting}
+
+\begin{conceito}{Vetores, matrizes e \emph{broadcasting}}
+\begin{itemize}
+  \item Índices começam em \textbf{1} e o último é \texttt{end}.
+  \item Matrizes são armazenadas \textbf{por coluna} (como Fortran):
+        em laços duplos, o índice mais interno deve ser o \emph{primeiro}
+        (\texttt{A[i,j]} com \texttt{i} no laço interno).
+  \item \textbf{Fatiar copia}: \texttt{A[2,:]} aloca memória nova; use
+        \texttt{@views} ou \texttt{view(A,2,:)} para evitar.
+  \item O \textbf{ponto} aplica qualquer função elemento a elemento, e
+        vários pontos numa expressão são \emph{fundidos} num único laço.
+  \item \texttt{.=} atribui \emph{dentro} de um vetor existente (sem alocar).
+\end{itemize}
+\end{conceito}
+
+\begin{lstlisting}[caption={Broadcasting e operacoes in-place}]
+x = range(0, 1, length=101)
+u = sin.(pi .* x)      # ponto = elemento a elemento
+v = similar(u)         # aloca uma vez
+v .= u .^ 2 .+ 1       # reusa v, laco unico
+@. v = u^2 + 1         # idem, com a macro @.
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Funcoes: forma longa, curta, argumentos nomeados e convencao "!"}]
+function fluxo_critico(p0, T0, d; Cd=0.85,
+                       gam=1.3, M=0.019)
+    R = 8.314                  # J/(mol K)
+    A = pi * d^2 / 4
+    f = (2/(gam+1))^((gam+1)/(gam-1))
+    return Cd * A * p0 * sqrt(gam*M/(R*T0) * f)
+end
+
+area(d) = pi * d^2 / 4         # forma curta
+
+# "!" = a funcao MODIFICA o argumento
+function zera_contorno!(u)
+    u[1] = 0.0; u[end] = 0.0
+    return u
+end
+
+mdot = fluxo_critico(80e5, 313.0, 0.025)
+\end{lstlisting}
+
+\begin{conceito}{Tipos e \emph{dispatch} múltiplo}
+Em Julia, você define \emph{tipos} (com \texttt{struct}) e escreve várias
+versões (\emph{métodos}) da mesma função para tipos diferentes. O compilador
+escolhe a versão certa. Para CFD, isso organiza o código de forma natural:
+um tipo para cada esquema, cada modelo de turbulência, cada condição de
+contorno --- e o laço principal não muda. É o equivalente, mais flexível, a
+classes e herança.
+\end{conceito}
+
+\begin{lstlisting}[caption={Dispatch: um tipo por esquema numerico}]
+abstract type Esquema end
+struct Upwind      <: Esquema end
+struct LaxWendroff <: Esquema end
+
+function passo!(u, un, C, ::Upwind)
+    for j in 2:length(u)
+        u[j] = un[j] - C*(un[j] - un[j-1])
+    end
+end
+
+function passo!(u, un, C, ::LaxWendroff)
+    for j in 2:length(u)-1
+        u[j] = un[j] - C/2*(un[j+1] - un[j-1]) +
+               C^2/2*(un[j+1] - 2un[j] + un[j-1])
+    end
+end
+
+# o mesmo laco serve para qualquer esquema:
+function advecta!(u, C, nt, esq::Esquema)
+    un = similar(u)
+    for n in 1:nt
+        un .= u
+        passo!(u, un, C, esq)
+    end
+    return u
+end
+# advecta!(u, 0.8, 200, Upwind())
+\end{lstlisting}
+
+\begin{conceito}{As sete regras do código rápido}
+\begin{enumerate}
+  \item Coloque o trabalho \textbf{dentro de funções}; evite variáveis
+        globais (ou declare-as \texttt{const}).
+  \item Mantenha \textbf{estabilidade de tipo}: não comece uma variável como
+        \texttt{0} (Int) se ela vai virar \texttt{Float64}; use \texttt{0.0}.
+        Diagnóstico: \texttt{@code\_warntype f(args)} (vermelho = problema).
+  \item \textbf{Pré-aloque} vetores fora dos laços de tempo; use \texttt{.=}.
+  \item Laços explícitos são rápidos --- não precisa ``vetorizar tudo''.
+  \item Respeite a ordem de memória por coluna.
+  \item Meça com \texttt{@btime} (pacote \texttt{BenchmarkTools}), não com
+        a primeira execução, que inclui compilação. Observe as
+        \textbf{alocações}: num laço de tempo bem escrito, devem ser zero.
+  \item Só depois de correto e medido, use \texttt{@inbounds} (desliga
+        verificação de índices) e paralelismo (\texttt{Threads.@threads}).
+\end{enumerate}
+\end{conceito}
+
+\begin{lstlisting}[caption={Lento vs. rapido: o mesmo calculo}]
+# LENTO: global nao tipada + aloca a cada passo
+alfa = 0.4
+function difunde_lento(u, n)
+    for k in 1:n
+        u = u .+ alfa .* [0; diff(diff(u)); 0]
+    end
+    return u
+end
+
+# RAPIDO: argumentos, pre-alocacao, laco
+function difunde!(u, tmp, r, n)
+    for k in 1:n
+        tmp .= u
+        @inbounds for j in 2:length(u)-1
+            u[j] = tmp[j] + r*(tmp[j+1] -
+                   2tmp[j] + tmp[j-1])
+        end
+    end
+    return u
+end
+
+using BenchmarkTools
+u = rand(10_000); tmp = similar(u)
+@btime difunde_lento($u, 100)
+@btime difunde!($u, $tmp, 0.4, 100)
+\end{lstlisting}
+
+\begin{conceito}{Ambientes, pacotes e testes}
+Cada projeto tem um \texttt{Project.toml} (pacotes que você pediu) e um
+\texttt{Manifest.toml} (versões exatas de tudo). Versionando ambos no Git,
+qualquer pessoa reproduz seu ambiente com \texttt{] instantiate} ---
+exatamente o que o critério ``reprodutível'' das tarefas exige.
+
+Testes com o módulo padrão \texttt{Test}: \texttt{@test} verifica uma
+condição; \texttt{@testset} agrupa. Em código numérico, compare com
+tolerância (\texttt{isapprox}), nunca com \texttt{==}.
+\end{conceito}
+
+\begin{lstlisting}[caption={Ambiente e teste do TDMA}]
+# terminal:  julia --project=.
+# no REPL, tecle ] e depois:
+#   add Plots BenchmarkTools JuMP HiGHS
+using Test, LinearAlgebra
+include("tdma.jl")   # sua funcao tdma(a,b,c,d)
+
+@testset "TDMA vs. solver denso" begin
+    n = 50
+    a = rand(n); c = rand(n); d = rand(n)
+    b = 4 .+ rand(n)   # diagonal dominante
+    A = Tridiagonal(a[2:end], b, c[1:end-1])
+    @test isapprox(tdma(a, b, c, d), A \ d;
+                   rtol=1e-10)
+end
+\end{lstlisting}
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.30\linewidth}p{0.30\linewidth}p{0.30\linewidth}@{}}
+\toprule
+Aspecto & Python/NumPy & Julia\\ \midrule
+1.º índice & 0 & 1\\
+Laço explícito & lento & rápido\\
+Elemento a elemento & implícito & ponto: \texttt{.+}\\
+Fatia & visão & cópia\\
+Ordem de memória & por linha & por coluna\\
+Potência & \texttt{**} & \texttt{\^{}}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{armadilha}
+Três erros que vejo todo semestre: (1) \texttt{2\^{}63} retorna um número
+negativo sem aviso --- inteiros têm tamanho fixo; (2) \texttt{v = u} não
+copia: os dois nomes apontam para o mesmo vetor, e mexer em \texttt{v}
+muda \texttt{u} (use \texttt{copy(u)}); (3) medir desempenho na primeira
+chamada e concluir que ``Julia é lenta''.
+\end{armadilha}
+
+\begin{tarefa}{Ambiente reprodutível}
+\enunciado Crie o repositório do curso como projeto Julia
+(\texttt{] activate .}), adicione \texttt{Plots}, \texttt{BenchmarkTools} e
+\texttt{SpecialFunctions} (para \texttt{erfc}) e refaça a figura da Tarefa
+0.1 como script executável com \texttt{julia --project=.}.
+\entregaveis\ \texttt{Project.toml} e \texttt{Manifest.toml} versionados;
+script; README com o comando único de execução.
+\criterio clonar em outra máquina, rodar \texttt{] instantiate} e o script
+reproduz a figura.
+\reflexao\ Por que fixar versões exatas de pacotes é uma questão de
+\emph{segurança} num estudo de engenharia, e não só de conveniência?
+\end{tarefa}
+
+\begin{tarefa}{Seu primeiro solver: TDMA}
+\enunciado Implemente \texttt{tdma(a, b, c, d)} (e a versão
+\texttt{tdma!} sem alocações) para o sistema
+$a_ix_{i-1}+b_ix_i+c_ix_{i+1}=d_i$. Teste contra
+\texttt{Tridiagonal(...) \textbackslash\ d}. Meça o tempo para
+$n=10^3,10^4,10^5,10^6$.
+\entregaveis\ Código; \texttt{@testset} passando; gráfico tempo $\times n$
+em escala log-log.
+\criterio inclinação $\approx1$ (custo linear) e zero alocações na versão
+\texttt{tdma!}.
+\reflexao\ Por que a eliminação de Gauss genérica custaria $\mathcal O(n^3)$
+e o TDMA custa $\mathcal O(n)$? Quando o TDMA pode falhar (dica:
+dominância diagonal)?
+\end{tarefa}
+
+\begin{tarefa}{Caça às alocações}
+\enunciado Use o par \texttt{difunde\_lento}/\texttt{difunde!} da
+listagem acima. (a) Meça os dois com \texttt{@btime}. (b) Rode
+\texttt{@code\_warntype difunde\_lento(u, 10)} e identifique a instabilidade
+de tipo. (c) Corrija a versão lenta em três passos (global $\rightarrow$
+argumento; pré-alocação; laço) medindo o ganho de cada um.
+\entregaveis\ Tabela com tempo e alocações em cada etapa.
+\criterio aceleração final de pelo menos uma ordem de grandeza.
+\reflexao\ Qual mudança deu o maior ganho? Escreva a regra com suas
+palavras no diário --- ela valerá para todos os solvers do curso.
+\end{tarefa}
+
+\begin{tarefa}{Dispatch para esquemas numéricos}
+\enunciado Partindo da listagem de dispatch, adicione os tipos
+\texttt{Central} e \texttt{TVD\{L\}}, em que \texttt{L} é um tipo de limitador
+(\texttt{Minmod}, \texttt{VanLeer}, \texttt{Superbee}) e a função
+\texttt{psi(r, ::Minmod)} etc.\ define cada um. Escreva um único laço de
+simulação que funcione com qualquer combinação.
+\entregaveis\ Módulo \texttt{Esquemas.jl} com testes (ex.: com $C=1$, o
+upwind transporta o perfil exatamente uma célula).
+\criterio adicionar um novo limitador exige escrever \emph{apenas} uma
+função \texttt{psi}.
+\reflexao\ Este é o esqueleto do ``torneio'' do Módulo 2. Compare com como
+você organizaria isso em Python (classes) ou Rust (\emph{traits}).
+\end{tarefa}
+
+\begin{critico}
+\begin{itemize}
+  \item Em que etapas deste curso Julia é a melhor escolha, e em quais você
+        usaria Python (ecossistema, ex.: Cantera) ou Rust (ferramenta
+        distribuível, segurança de memória)?
+  \item Um código rápido e errado é pior que um código lento e certo. Que
+        disciplina de testes você vai adotar antes de otimizar?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+REPL; compilação JIT / \emph{just-in-time compilation}; dispatch múltiplo /
+\emph{multiple dispatch}; estabilidade de tipo / \emph{type stability};
+broadcasting; alocação / \emph{allocation}; pré-alocação /
+\emph{preallocation}; ordem por coluna / \emph{column-major}; ambiente /
+\emph{environment}; teste unitário / \emph{unit test}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Bezanson, J.; Edelman, A.; Karpinski, S.; Shah, V. B. Julia: a fresh approach to numerical computing. \emph{SIAM Rev.}, 59(1):65--98, 2017.
+  \item Documentação oficial: \url{https://docs.julialang.org} --- em especial ``\emph{Performance Tips}'' e ``\emph{Noteworthy Differences from other Languages}''.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Lauwens, B.; Downey, A.} \emph{Think Julia}. O'Reilly, 2019 (versão gratuita on-line). Para quem nunca programou de forma estruturada.
+  \item \textbf{Storopoli, J.; Huijzer, R.; Alonso, L.} \emph{Julia Data Science}, 2021 (gratuito on-line). Rápido e prático, escrito em parte por brasileiros.
+  \item \textbf{Rackauckas, C.} \emph{Parallel Computing and Scientific Machine Learning} (notas do curso MIT 18.337, gratuitas). Desempenho, paralelismo e EDPs em Julia --- leitura obrigatória depois do Módulo 4.
+  \item \textbf{Kochenderfer, M. J.; Wheeler, T. A.} \emph{Algorithms for Optimization}. MIT Press, 2019. Otimização com exemplos em Julia; útil no Módulo 9.
+  \item \textbf{Seção ``Performance Tips'' do manual}: releia a cada novo solver.
+\end{itemize}
+\end{aprofundar}
+
+\renewcommand{\thechapter}{\arabic{chapter}}
+\renewcommand{\theHchapter}{\arabic{chapter}}
+\setcounter{chapter}{0}
+
+% ======================================================================
+\chapter{Equações diferenciais parciais e diferenças finitas}
+
+\objetivos
+\begin{itemize}
+  \item Classificar EDPs e entender o que cada tipo exige de um método numérico.
+  \item Derivar aproximações por diferenças finitas e seu erro de truncamento.
+  \item Aplicar os conceitos de consistência, estabilidade e convergência
+        (teorema de Lax) e a análise de von Neumann.
+  \item Comparar esquemas explícitos e implícitos na prática.
+\end{itemize}
+
+\begin{conceito}{Classificação de EDPs de segunda ordem}
+Para $A u_{xx} + B u_{xy} + C u_{yy} + \ldots = 0$, o discriminante
+$B^2-4AC$ define o tipo:
+\begin{itemize}
+  \item $<0$: \textbf{elíptica} (ex.: Poisson, $\nabla^2 p = f$). Informação
+        se propaga instantaneamente em todas as direções; precisa de
+        condições em todo o contorno. É a equação de pressão do Módulo 4.
+  \item $=0$: \textbf{parabólica} (ex.: difusão, $u_t = \alpha u_{xx}$).
+        Marcha no tempo com suavização.
+  \item $>0$: \textbf{hiperbólica} (ex.: ondas, advecção pura, Euler).
+        Informação viaja por características com velocidade finita ---
+        a física das ondas de choque das explosões (Módulos 12--13).
+\end{itemize}
+As equações de Navier--Stokes têm caráter misto, e é por isso que os
+algoritmos de CFD são combinações engenhosas de técnicas para cada parte.
+\end{conceito}
+
+\begin{conceito}{Diferenças finitas e erro de truncamento}
+Expandindo em série de Taylor, $u_{i\pm1} = u_i \pm \Delta x\, u_x +
+\tfrac{\Delta x^2}{2} u_{xx} \pm \tfrac{\Delta x^3}{6}u_{xxx} + \ldots$, obtém-se
+\begin{align*}
+  \frac{u_{i+1}-2u_i+u_{i-1}}{\Delta x^2}
+  &= u_{xx} + \underbrace{\frac{\Delta x^2}{12}u_{xxxx} + \ldots}_{\tau\;=\;\mathcal{O}(\Delta x^2)}
+\end{align*}
+onde $\tau$ é o \emph{erro de truncamento local}.
+A \textbf{ordem} do esquema é o expoente do termo líder do erro. Ordem alta
+não garante precisão em malha grossa: o coeficiente e as derivadas altas
+da solução importam.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: série de Taylor]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $u_i$ --- valor discreto da variável no nó $i$, em $x_i=i\,\Delta x$.
+  \item $\Delta x$ --- espaçamento da malha [m].
+  \item $u_{xx}$, $u_{xxxx}$ --- derivadas parciais de 2.ª e 4.ª ordem em $x$.
+  \item $\mathcal O(\Delta x^2)$ --- ``da ordem de $\Delta x^2$'': o erro cai
+        4 vezes quando $\Delta x$ cai à metade.
+\end{itemize}
+\origem A série é de Brook Taylor (1715). A notação $\mathcal O(\cdot)$
+(``O grande'') foi introduzida por Paul Bachmann (1894) e popularizada por
+Edmund Landau. A ideia de substituir derivadas por quocientes de diferenças
+já aparece em Euler (séc.\ XVIII); a primeira solução numérica sistemática de
+EDPs por diferenças finitas é de L.\,F. Richardson (1911).
+\end{dicionario}
+
+
+\begin{conceito}{Consistência, estabilidade, convergência}
+\begin{itemize}
+  \item \textbf{Consistência:} o erro de truncamento $\rightarrow 0$ quando
+        $\Delta x, \Delta t \rightarrow 0$.
+  \item \textbf{Estabilidade:} erros (de arredondamento, de condição inicial)
+        não crescem sem limite.
+  \item \textbf{Convergência:} a solução discreta tende à solução exata.
+\end{itemize}
+\textbf{Teorema da equivalência de Lax:} para um problema linear bem-posto, um
+esquema consistente é convergente \emph{se e somente se} é estável.
+\medskip
+
+\textbf{Análise de von Neumann.} Substitua $u_j^n = G^n e^{\mathrm{i}kj\Delta x}$
+no esquema. Estabilidade exige $|G|\le 1$ para todo número de onda $k$.
+Para FTCS na difusão, com $r=\alpha\Delta t/\Delta x^2$:
+\begin{gather*}
+  u_j^{n+1} = u_j^n + r\,(u_{j+1}^n - 2u_j^n + u_{j-1}^n)\\
+  \Downarrow\\
+  G = 1 - 4r\sin^2\!\left(\tfrac{k\Delta x}{2}\right)
+  \;\Rightarrow\; r \le \tfrac12 .
+\end{gather*}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: difusão e von Neumann]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $u_t=\alpha u_{xx}$ --- equação do calor/difusão; $\alpha$ é a
+        difusividade [m$^2$/s] (térmica, mássica ou turbulenta).
+  \item $u_j^n$ --- valor no nó $j$ e no instante $t_n=n\,\Delta t$.
+  \item $r=\alpha\Delta t/\Delta x^2$ --- número de difusão da malha
+        (ou ``número de Fourier da malha''), adimensional.
+  \item $k$ --- número de onda [rad/m] de um modo de Fourier do erro;
+        $k\Delta x\in[0,\pi]$ vai do modo mais suave ao ``serrote''.
+  \item $G$ --- fator de amplificação: quanto um modo é multiplicado a
+        cada passo. $|G|>1$ $\Rightarrow$ crescimento exponencial.
+  \item $\mathrm i=\sqrt{-1}$.
+\end{itemize}
+\origem A equação do calor é de Joseph Fourier (\emph{Théorie analytique de
+la chaleur}, 1822). A análise de estabilidade foi desenvolvida por John von
+Neumann em Los Alamos nos anos 1940 e divulgada por Crank \& Nicolson (1947)
+e O'Brien, Hyman \& Kaplan (1951). A ideia: como o esquema é linear, o erro é
+uma soma de senoides; basta ver se \emph{alguma} delas cresce. FTCS =
+\emph{Forward Time, Centered Space}. O teorema de equivalência é de Lax \&
+Richtmyer (1956).
+\end{dicionario}
+
+
+\begin{conceito}{Explícito, implícito e Crank--Nicolson}
+\begin{itemize}
+  \item \textbf{Explícito (FTCS):} barato por passo, estabilidade condicional.
+  \item \textbf{Implícito (BTCS):} resolve um sistema linear por passo
+        (tridiagonal em 1D, algoritmo de Thomas/TDMA), incondicionalmente
+        estável, primeira ordem no tempo.
+  \item \textbf{Crank--Nicolson:} média dos dois, segunda ordem no tempo,
+        incondicionalmente estável, mas \emph{não amortece} modos de alta
+        frequência quando $r$ é grande --- surgem oscilações espúrias.
+\end{itemize}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: o método $\theta$]
+Os três esquemas são casos de uma única fórmula. Sendo $\mathcal L u_j =
+u_{j+1}-2u_j+u_{j-1}$:
+\[
+  u_j^{n+1}-u_j^n = r\left[\theta\,\mathcal L u_j^{n+1}+(1-\theta)\,\mathcal L u_j^{n}\right],
+\]
+com $\theta=0$ (FTCS, explícito), $\theta=\tfrac12$ (Crank--Nicolson),
+$\theta=1$ (BTCS, \emph{Backward Time, Centered Space}). Para $\theta>0$
+surge um sistema tridiagonal $a_ju_{j-1}+b_ju_j+c_ju_{j+1}=d_j$.
+\origem John Crank e Phyllis Nicolson publicaram o método em 1947, estudando
+aquecimento de materiais com reação química. O algoritmo tridiagonal
+(eliminação de Gauss especializada, custo $\mathcal O(N)$) é atribuído a
+Llewellyn Thomas (1949), daí ``algoritmo de Thomas'' ou TDMA
+(\emph{TriDiagonal Matrix Algorithm}).
+\end{dicionario}
+
+
+\begin{lstlisting}[caption={Esqueleto FTCS em Julia (difusao 1D)}]
+function ftcs!(u, alpha, dx, dt, nsteps)
+    r = alpha*dt/dx^2
+    r > 0.5 && @warn "r = $r > 0.5: espere instabilidade"
+    un = similar(u)
+    for n in 1:nsteps
+        un .= u
+        for i in 2:length(u)-1
+            u[i] = un[i] + r*(un[i+1] - 2un[i] + un[i-1])
+        end
+        # contornos de Dirichlet: u[1], u[end] mantidos
+    end
+    return u
+end
+\end{lstlisting}
+
+\begin{tarefa}{Difusão 1D: três esquemas, um veredito}
+\enunciado Resolva $u_t=\alpha u_{xx}$ em $x\in[0,1]$, com $u(0,t)=u(1,t)=0$
+e $u(x,0)=\sin(\pi x)$, cuja solução exata é $u=e^{-\alpha\pi^2 t}\sin(\pi x)$.
+Implemente FTCS, BTCS (com TDMA escrito por você) e Crank--Nicolson.
+\begin{enumerate}
+  \item Rode FTCS com $r=0{,}40$; $0{,}50$; $0{,}51$. Documente o que acontece.
+  \item Para cada esquema, faça um estudo de convergência: erro na norma $L_2$
+        em $t=0{,}1$ versus $\Delta x$ (mantendo $r$ fixo), em escala log-log.
+  \item Repita Crank--Nicolson com condição inicial degrau (descontínua) e
+        $r=5$. Observe as oscilações.
+\end{enumerate}
+\entregaveis
+\begin{itemize}
+  \item Código dos três esquemas e do TDMA, com teste unitário do TDMA.
+  \item Gráfico log-log com retas de referência de inclinação 1 e 2.
+  \item Tabela: ordem observada $p = \ln(e_1/e_2)/\ln(\Delta x_1/\Delta x_2)$.
+  \item Figura das oscilações de Crank--Nicolson.
+\end{itemize}
+\criterio as ordens observadas coincidem com as teóricas (com tolerância de
+$\pm 0{,}1$) na faixa assintótica.
+\reflexao\ Por que, mantendo $r$ fixo, o FTCS aparenta ser de segunda ordem
+em $\Delta x$? Qual o custo computacional de dobrar a resolução no FTCS
+versus no BTCS?
+\end{tarefa}
+
+\begin{tarefa}{Von Neumann no papel}
+\enunciado Derive à mão o fator de amplificação $G$ do BTCS e do
+Crank--Nicolson para a equação de difusão. Mostre que $|G|\le1$ para todo
+$r>0$ e determine o limite de $G$ do Crank--Nicolson quando $r\rightarrow\infty$
+para o modo de maior frequência ($k\Delta x=\pi$).
+\entregaveis\ Derivação digitalizada ou em \LaTeX; gráfico de $G(k\Delta x)$
+para os três esquemas e $r\in\{0{,}25;\,1;\,10\}$.
+\criterio o gráfico explica, sozinho, as oscilações vistas na Tarefa anterior.
+\reflexao\ ``Incondicionalmente estável'' significa ``sempre preciso''? Dê um
+contraexemplo com base nos seus resultados.
+\end{tarefa}
+
+\begin{professor}
+Faço todo aluno ver o FTCS explodir pelo menos uma vez. Parece infantil, mas
+a imagem daquele serrote crescendo exponencialmente é o que vai fazer você,
+daqui a dois anos, desconfiar imediatamente quando um campo de pressão de
+explosão aparecer com oscilações de malha a malha. Instabilidade numérica tem
+``cara'', e você precisa reconhecê-la.
+\end{professor}
+
+\begin{critico}
+\begin{itemize}
+  \item O teorema de Lax vale para problemas lineares. As equações de
+        Navier--Stokes não são lineares. O que, então, garante a convergência
+        dos códigos industriais? (Dica: pense em ``evidência'' em vez de
+        ``prova''.)
+  \item Uma solução estável e convergente na malha pode estar errada? Em
+        que sentido?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+equação diferencial parcial / \emph{PDE}; erro de truncamento /
+\emph{truncation error}; consistência / \emph{consistency}; estabilidade de
+von Neumann / \emph{von Neumann stability}; teorema de equivalência de Lax /
+\emph{Lax equivalence theorem}; algoritmo de Thomas / \emph{TDMA};
+Crank--Nicolson; ordem de convergência / \emph{order of accuracy}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item LeVeque, R. J. \emph{Finite Difference Methods for Ordinary and Partial Differential Equations}. SIAM, 2007.
+  \item Anderson, J. D. \emph{Computational Fluid Dynamics: The Basics with Applications}. McGraw-Hill, 1995. (Caps. 3--4)
+  \item Lax, P. D.; Richtmyer, R. D. Survey of the stability of linear finite difference equations. \emph{Comm. Pure Appl. Math.}, 9:267--293, 1956.
+  \item Barba, L. A.; Forsyth, G. F. CFD Python: the 12 steps to Navier--Stokes equations. \emph{J. Open Source Educ.}, 1(9):21, 2018.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{LeVeque (2007)}, caps.\ 9 e 10: a melhor exposição moderna de estabilidade para difusão e advecção, com ênfase em intuição.
+  \item \textbf{Strikwerda, J. C.} \emph{Finite Difference Schemes and Partial Differential Equations}. 2.\,ed. SIAM, 2004. Para o rigor da análise de von Neumann e do teorema de Lax.
+  \item \textbf{Trefethen, L. N.} \emph{Finite Difference and Spectral Methods for Ordinary and Partial Differential Equations} (notas, 1996, disponíveis gratuitamente na página do autor). O capítulo sobre velocidade de grupo e dispersão numérica é uma joia.
+  \item \textbf{Crank \& Nicolson (1947)}, artigo original: leia para ver como um método clássico nasceu de um problema prático.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Advecção e o dilema da difusão numérica}
+
+\objetivos
+\begin{itemize}
+  \item Entender por que discretizar advecção é o problema central de CFD.
+  \item Derivar e interpretar a \emph{equação modificada}.
+  \item Conhecer o teorema de Godunov e os esquemas TVD com limitadores.
+  \item Relacionar difusão numérica com erros em concentrações de gás.
+\end{itemize}
+
+\begin{conceito}{Advecção linear e a condição CFL}
+$u_t + a\,u_x = 0$ transporta o perfil inicial sem deformação com velocidade
+$a$. Para esquemas explícitos, a condição de Courant--Friedrichs--Lewy exige
+que o domínio de dependência numérico contenha o físico:
+\[
+  C = \frac{|a|\,\Delta t}{\Delta x} \le 1 \quad\text{(tipicamente).}
+\]
+Em 3D com velocidades altas (jatos sônicos!), a CFL dita o passo de tempo e,
+portanto, o custo da simulação.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: CFL]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $a$ --- velocidade de advecção [m/s]; $C$ --- número de Courant.
+  \item \emph{Domínio de dependência}: o conjunto de pontos do instante
+        anterior que influenciam um ponto. Fisicamente, a informação anda
+        $a\,\Delta t$; o esquema explícito ``enxerga'' só $\Delta x$.
+  \item Em 3D: $C=\Delta t\,(|u|/\Delta x+|v|/\Delta y+|w|/\Delta z)$.
+  \item Em escoamento compressível (explosões), troque $|u|$ por
+        $|u|+c$, com $c$ a velocidade do som: as ondas de pressão também
+        transportam informação.
+\end{itemize}
+\origem Richard Courant, Kurt Friedrichs e Hans Lewy (\emph{Math. Annalen},
+1928). Curiosamente, o artigo não tratava de computação: usava diferenças
+finitas para \emph{provar a existência} de soluções de EDPs. A condição
+virou critério prático com os primeiros computadores, nos anos 1940--50.
+\end{dicionario}
+
+
+\begin{conceito}{Esquemas clássicos e a equação modificada}
+\begin{itemize}
+  \item \textbf{FTCS} (central no espaço): incondicionalmente \emph{instável}.
+  \item \textbf{Upwind} de 1.ª ordem ($a>0$):
+        $u_j^{n+1} = u_j^n - C(u_j^n - u_{j-1}^n)$. Estável para $C\le1$.
+  \item \textbf{Lax--Wendroff}: 2.ª ordem, estável para $C\le1$, mas gera
+        oscilações perto de descontinuidades.
+\end{itemize}
+A \textbf{equação modificada} é a EDP que o esquema resolve \emph{de fato}.
+Para o upwind:
+\[
+  u_t + a u_x = \underbrace{\frac{a\Delta x}{2}(1-C)}_{\nu_{\text{num}}}\,u_{xx} + \ldots
+\]
+O upwind resolve uma equação de \emph{advecção-difusão}, com uma viscosidade
+artificial $\nu_{\text{num}}$. Esquemas de 2.ª ordem têm termo líder com
+$u_{xxx}$: erro \emph{dispersivo} (ondulações), não difusivo.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: equação modificada]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\nu_{\text{num}}$ --- viscosidade (ou difusividade) numérica
+        [m$^2$/s], criada pelo esquema, não pela física.
+  \item Termo em $u_{xx}$ --- \emph{difusivo}: achata e alarga picos.
+  \item Termo em $u_{xxx}$ --- \emph{dispersivo}: ondas de comprimentos
+        diferentes viajam a velocidades diferentes, gerando ondulações.
+\end{itemize}
+\textbf{Como se deriva:} expanda em Taylor cada termo do esquema discreto em
+torno de $(x_j,t_n)$, e use a própria EDP para trocar derivadas temporais
+por espaciais ($u_{tt}=a^2u_{xx}$). O que sobra além de $u_t+au_x$ é o erro.
+\origem Warming \& Hyett (\emph{J.\ Comput.\ Phys.}, 1974) sistematizaram o
+método; a noção de ``viscosidade artificial'' é anterior e intencional em
+von Neumann \& Richtmyer (1950), que a \emph{adicionavam} para capturar choques.
+\end{dicionario}
+
+
+\begin{conceito}{Teorema de Godunov e esquemas TVD}
+\textbf{Godunov (1959):} esquemas \emph{lineares} que preservam monotonicidade
+são, no máximo, de 1.ª ordem. A saída é usar esquemas \emph{não lineares}:
+a variação total $TV=\sum_j|u_{j+1}-u_j|$ não deve crescer (TVD). Isso se faz
+com \textbf{limitadores de fluxo} $\psi(r)$, com $r$ a razão de gradientes
+sucessivos:
+\begin{gather*}
+  \text{minmod: } \psi=\max(0,\min(1,r)),\\
+  \text{van Leer: } \psi=\frac{r+|r|}{1+|r|},\\
+  \text{superbee: } \psi=\max(0,\min(2r,1),\min(r,2)).
+\end{gather*}
+O diagrama de Sweby mostra a região TVD de 2.ª ordem. No OpenFOAM, você verá
+isso como \texttt{limitedLinear}, \texttt{vanLeer}, \texttt{linearUpwind} etc.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: limitadores]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $r_j=\dfrac{u_j-u_{j-1}}{u_{j+1}-u_j}$ --- razão de gradientes
+        consecutivos: $r\approx1$ em regiões suaves, $r\le0$ em extremos.
+  \item $\psi(r)$ --- limitador: mistura um fluxo de baixa ordem (robusto)
+        com um de alta ordem (preciso):
+        $F_{j+\frac12}=F^{\text{baixa}}+\psi(r_j)\,(F^{\text{alta}}-F^{\text{baixa}})$.
+  \item $\psi=0$ $\Rightarrow$ upwind puro; $\psi=1$ $\Rightarrow$ Lax--Wendroff.
+  \item $TV$ --- variação total; se não cresce, não nascem novos extremos.
+\end{itemize}
+\origem Sergei Godunov provou o teorema em 1959 (\emph{Mat.\ Sbornik}). Bram
+van Leer (série ``\emph{Towards the ultimate conservative difference scheme}'',
+1973--79) e Ami Harten (1983) criaram a teoria TVD; o \emph{superbee} é de Roe
+(1985) e o diagrama de Sweby, de 1984.
+\end{dicionario}
+
+
+\begin{tarefa}{O torneio dos esquemas de advecção}
+\enunciado Em domínio periódico $[0,1]$ com $a=1$, transporte (i) um pulso
+gaussiano e (ii) um pulso quadrado por uma volta completa. Compare upwind,
+Lax--Wendroff, e um esquema TVD com minmod, van Leer e superbee. Use
+$C\in\{0{,}5;\,0{,}9;\,1{,}0\}$ e 100, 200 e 400 células.
+\entregaveis
+\begin{itemize}
+  \item Figuras sobrepostas: solução exata vs. cada esquema.
+  \item Tabela com: erro $L_1$, razão pico numérico/pico exato, $\max u$ e
+        $\min u$ (detecta oscilações), variação total final.
+  \item Explicação de por que $C=1$ dá resultado ``perfeito'' no upwind e por
+        que isso é irrelevante na prática.
+\end{itemize}
+\criterio você consegue prever, olhando apenas a tabela, qual esquema
+escolheria para transportar concentração de gás.
+\reflexao\ Concentração de gás é uma grandeza limitada ($0\le Y\le1$). Que
+esquemas violaram esses limites? Que consequência física absurda isso teria
+num cálculo de inflamabilidade?
+\end{tarefa}
+
+\begin{tarefa}{Medindo a viscosidade numérica}
+\enunciado Transporte um pulso gaussiano com upwind e meça, ao longo do tempo,
+a variância $\sigma^2(t)$ do perfil. Sabendo que a difusão pura faz
+$\sigma^2(t)=\sigma_0^2+2\nu t$, estime $\nu_{\text{num}}$ por regressão e
+compare com $\frac{a\Delta x}{2}(1-C)$.
+\entregaveis\ Gráfico $\sigma^2\times t$, valor estimado vs. teórico para
+três malhas.
+\criterio diferença menor que 5\% entre estimado e teórico.
+\reflexao\ Num jato de gás com $u\sim 50$ m/s em células de 0,5 m, qual seria
+$\nu_{\text{num}}$ de um upwind de 1.ª ordem? Compare com a viscosidade
+turbulenta típica ($\sim 10^{-2}$ a $1$ m$^2$/s). Quem domina a mistura na
+sua simulação: a física ou o esquema?
+\end{tarefa}
+
+\begin{armadilha}
+Usar upwind de 1.ª ordem ``para convergir'' e esquecer de trocar depois. Em
+dispersão, isso achata picos de concentração e altera o tamanho da nuvem
+inflamável. Em explosões, espalha a frente de chama e reduz a sobrepressão.
+Em ambos, o erro não é conservador por definição: pode ir para qualquer lado.
+\end{armadilha}
+
+\begin{critico}
+\begin{itemize}
+  \item A difusão numérica aumenta ou diminui a distância até o LFL? (Resposta
+        honesta: depende. Construa um argumento para cada caso.)
+  \item Se o modelo de turbulência já é uma aproximação grosseira, vale a
+        pena insistir em esquemas de alta ordem?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+advecção / \emph{advection}; número de Courant / \emph{Courant number, CFL};
+difusão numérica / \emph{numerical diffusion}; dispersão numérica /
+\emph{numerical dispersion}; equação modificada / \emph{modified equation};
+limitador de fluxo / \emph{flux limiter}; TVD / \emph{total variation
+diminishing}; monotonicidade / \emph{monotonicity}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item LeVeque, R. J. \emph{Finite Volume Methods for Hyperbolic Problems}. Cambridge University Press, 2002. (Caps. 4, 6)
+  \item Sweby, P. K. High resolution schemes using flux limiters for hyperbolic conservation laws. \emph{SIAM J. Numer. Anal.}, 21(5):995--1011, 1984.
+  \item Harten, A. High resolution schemes for hyperbolic conservation laws. \emph{J. Comput. Phys.}, 49:357--393, 1983.
+  \item Hirsch, C. \emph{Numerical Computation of Internal and External Flows}. 2.\,ed. Butterworth-Heinemann, 2007.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{LeVeque (2002)}, caps.\ 4--6: volumes finitos, limitadores e TVD com rara clareza.
+  \item \textbf{Laney, C. B.} \emph{Computational Gasdynamics}. Cambridge, 1998. Excelente ponte entre advecção escalar e Euler.
+  \item \textbf{Warming \& Hyett (1974)}, \emph{J.\ Comput.\ Phys.} 14:159--179: o artigo da equação modificada; curto e transformador.
+  \item \textbf{Toro (2009)}, cap.\ 13: limitadores TVD em detalhe, preparando o Módulo 12.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Volumes finitos e a equação de transporte genérica}
+
+\objetivos
+\begin{itemize}
+  \item Derivar a formulação de volumes finitos a partir da forma integral.
+  \item Discretizar a equação geral de transporte com diversos esquemas de face.
+  \item Garantir conservação, limitação e convergência de solvers iterativos.
+  \item Construir um protótipo de dispersão de escalar passivo.
+\end{itemize}
+
+\begin{conceito}{A equação geral de transporte}
+Massa de espécie, momento, energia, $k$, $\varepsilon$, fração de mistura ---
+quase tudo em CFD tem a forma
+\begin{align*}
+  \underbrace{\frac{\partial(\rho\phi)}{\partial t}}_{\text{acúmulo}}
+  + \underbrace{\nabla\cdot(\rho\mathbf{u}\phi)}_{\text{advecção}}
+  &= \underbrace{\nabla\cdot(\Gamma\nabla\phi)}_{\text{difusão}}\\
+  &\quad + \underbrace{S_\phi}_{\text{fonte}} .
+\end{align*}
+Integrando num volume de controle $V_P$ e usando o teorema de Gauss:
+\begin{align*}
+  \frac{d}{dt}\int_{V_P}\rho\phi\,dV &+ \sum_{f}(\rho\mathbf{u}\phi)_f\cdot\mathbf{S}_f\\
+  &= \sum_f(\Gamma\nabla\phi)_f\cdot\mathbf{S}_f + \bar S_\phi V_P .
+\end{align*}
+O que sai por uma face entra na vizinha: a \textbf{conservação é exata no
+nível discreto}. É por isso que FV domina os códigos industriais (OpenFOAM,
+Fluent, FLACS, KFX, FDS usa formulação equivalente).
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: transporte genérico]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\phi$ --- grandeza transportada por unidade de massa.
+  \item $\rho$ --- massa específica [kg/m$^3$]; $\mathbf u$ --- velocidade [m/s].
+  \item $\Gamma$ --- coeficiente de difusão [kg/(m$\cdot$s)].
+  \item $S_\phi$ --- fonte por unidade de volume (reação, empuxo\ldots).
+  \item $V_P$ --- volume da célula $P$; $\mathbf S_f$ --- vetor-área da
+        face $f$ (normal externa $\times$ área) [m$^2$].
+\end{itemize}
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+$\phi$ & $\Gamma$ & equação \\ \midrule
+$1$ & --- & continuidade\\
+$u_i$ & $\mu$ & momento ($S$ inclui $-\nabla p$, $\rho\mathbf g$)\\
+$Y_k$ & $\rho D_k$ & espécie química\\
+$h$ & $\lambda/c_p$ & energia (entalpia)\\
+\bottomrule
+\end{tabular}
+\end{center}
+\origem O passo-chave é o \emph{teorema da divergência} (Gauss, 1813;
+Ostrogradsky, 1826): a integral de um divergente no volume é o fluxo pela
+superfície. O método de volumes finitos foi popularizado por Spalding,
+Patankar e o grupo do Imperial College nos anos 1970.
+\end{dicionario}
+
+
+\begin{conceito}{Número de Péclet de célula e limitação}
+Em 1D com esquema central, a forma discreta $a_P\phi_P=a_E\phi_E+a_W\phi_W+b$
+tem $a_E = D_e - F_e/2$, com $F=\rho u$ e $D=\Gamma/\Delta x$. Se o
+\textbf{Péclet de célula} $Pe=F/D=\rho u\Delta x/\Gamma > 2$, então $a_E<0$
+e surgem oscilações não físicas. Regras de Patankar para soluções limitadas:
+coeficientes positivos, $a_P \ge \sum a_{nb}$ (critério de Scarborough), e
+linearização da fonte $S = S_C + S_P\phi_P$ com $S_P\le0$.
+Esquemas: central, upwind, híbrido, lei de potência, QUICK, TVD.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: coeficientes de FV]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $F=\rho u$ --- fluxo convectivo de massa [kg/(m$^2\cdot$s)].
+  \item $D=\Gamma/\Delta x$ --- ``condutância'' difusiva, mesma unidade.
+  \item $a_P,a_E,a_W$ --- coeficientes da célula e das vizinhas leste
+        (\emph{East}) e oeste (\emph{West}); $b$ --- termo independente.
+  \item $Pe=F/D$ --- razão entre transporte por advecção e por difusão
+        na escala da célula.
+  \item $S_C$, $S_P$ --- partes constante e linear da fonte.
+\end{itemize}
+\origem O número leva o nome de Jean Claude Eugène Péclet (1793--1857),
+físico francês que estudou transferência de calor. As ``quatro regras
+básicas'' de limitação são do livro de Patankar (1980); o esquema híbrido é
+de Spalding (1972) e o QUICK, de Leonard (1979).
+\end{dicionario}
+
+
+\begin{conceito}{Condições de contorno e solvers lineares}
+\textbf{Contornos:} Dirichlet (valor), Neumann (fluxo), Robin (misto),
+saída (gradiente nulo --- cuidado com refluxo!). \textbf{Solvers:} Jacobi,
+Gauss--Seidel, SOR, gradiente conjugado (matrizes simétricas, ex.: pressão),
+BiCGStab (não simétricas, ex.: advecção), multigrid (o que torna 3D viável).
+\textbf{Sub-relaxação:} $\phi^{\text{novo}} = \phi^{\text{velho}} +
+\lambda(\phi^{\text{calc}}-\phi^{\text{velho}})$. \textbf{Resíduos}:
+normalize-os, ou o número ``$10^{-6}$'' não significa nada.
+\end{conceito}
+
+\begin{tarefa}{Advecção-difusão 1D estacionária}
+\enunciado Resolva $\frac{d}{dx}(\rho u\phi) = \frac{d}{dx}\!\left(\Gamma\frac{d\phi}{dx}\right)$
+em $[0,L]$, $\phi(0)=0$, $\phi(L)=1$, com solução exata
+\[
+  \frac{\phi(x)}{1} = \frac{\exp(Pe_L\,x/L)-1}{\exp(Pe_L)-1}, \qquad Pe_L=\frac{\rho u L}{\Gamma}.
+\]
+Implemente central, upwind, híbrido e QUICK. Varie o Péclet de célula de
+$0{,}1$ a $10$.
+\entregaveis
+\begin{itemize}
+  \item Gráficos $\phi(x)$ numérico vs. exato para $Pe_{\text{célula}}\in\{0{,}5;\,2;\,5\}$.
+  \item Mapa ``esquema $\times$ $Pe$'' indicando: preciso, difusivo, oscilatório.
+\end{itemize}
+\criterio você reproduz os resultados clássicos do Cap. 5 de Versteeg \&
+Malalasekera.
+\reflexao\ Na camada limite de concentração junto a um jato de gás, o
+Péclet de célula é alto ou baixo? O que isso implica para a malha?
+\end{tarefa}
+
+\begin{tarefa}{Primeiro protótipo de dispersão 2D}
+\enunciado Resolva o transporte transiente 2D de um escalar passivo
+(fração mássica $Y$) num campo de vento uniforme $\mathbf{u}=(U,0)$ com
+difusividade constante $K$ (pense nela como difusividade turbulenta) e uma
+fonte contínua pontual $\dot m$ (kg/s). Use FV com esquema TVD e integração
+implícita no tempo. Contornos: entrada $Y=0$, saída gradiente nulo, laterais
+simétricas.
+\entregaveis
+\begin{itemize}
+  \item Mapa de contornos de $Y$ em estado estacionário e animação transiente.
+  \item \textbf{Balanço global de massa}: gráfico de
+        $\int\rho Y\,dV$ + massa que saiu $-$ massa injetada, ao longo do tempo.
+        Deve ser zero até o erro de máquina (ou de tolerância do solver).
+  \item Comparação com a solução analítica 2D de fonte contínua em vento
+        uniforme (busque-a em Seinfeld \& Pandis ou derive-a).
+\end{itemize}
+\criterio erro de balanço de massa $<10^{-8}$ relativo; concordância com a
+analítica longe da fonte.
+\reflexao\ Este código é, conceitualmente, o núcleo de qualquer estudo de
+dispersão em CFD. Liste tudo o que falta para ele ser ``industrial''
+(você vai riscar itens dessa lista ao longo do curso).
+\end{tarefa}
+
+\begin{professor}
+Guarde a lista da reflexão acima. No fim do curso, eu peço que os alunos a
+releiam. É o momento em que percebem quanto avançaram --- e quanto de um
+software comercial são decisões de modelagem, não ``mágica''.
+\end{professor}
+
+\begin{critico}
+\begin{itemize}
+  \item Um código que conserva massa exatamente pode ainda assim produzir
+        concentrações negativas. Como? Isso é aceitável?
+  \item Quando um resíduo cai seis ordens de grandeza, a solução está
+        convergida? Proponha um critério melhor para um estudo de dispersão
+        (dica: monitore grandezas de interesse, como o volume inflamável).
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+volumes finitos / \emph{finite volume method}; forma conservativa /
+\emph{conservative form}; número de Péclet / \emph{Péclet number};
+limitação / \emph{boundedness}; sub-relaxação / \emph{under-relaxation};
+resíduo / \emph{residual}; multigrid; QUICK; esquema híbrido /
+\emph{hybrid scheme}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Versteeg, H. K.; Malalasekera, W. \emph{An Introduction to Computational Fluid Dynamics: The Finite Volume Method}. 2.\,ed. Pearson, 2007.
+  \item Patankar, S. V. \emph{Numerical Heat Transfer and Fluid Flow}. Hemisphere, 1980.
+  \item Moukalled, F.; Mangani, L.; Darwish, M. \emph{The Finite Volume Method in Computational Fluid Dynamics}. Springer, 2016.
+  \item Saad, Y. \emph{Iterative Methods for Sparse Linear Systems}. 2.\,ed. SIAM, 2003.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Patankar (1980)}, caps.\ 3--5: curto, didático e ainda o melhor texto sobre ``por que'' os coeficientes devem ser positivos.
+  \item \textbf{Moukalled, Mangani \& Darwish (2016)}, caps.\ 8--12: mesma teoria em malhas não estruturadas, com a notação do OpenFOAM.
+  \item \textbf{Jasak, H.} \emph{Error Analysis and Estimation for the Finite Volume Method with Applications to Fluid Flows}. Tese, Imperial College, 1996. A base teórica do OpenFOAM; leia os caps.\ 3 e 4.
+  \item \textbf{Saad (2003)}, caps.\ 6--7: gradiente conjugado e Krylov, para entender o que os solvers lineares fazem.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Navier--Stokes incompressível e acoplamento pressão-velocidade}
+
+\objetivos
+\begin{itemize}
+  \item Entender o papel da pressão em escoamentos incompressíveis.
+  \item Implementar um método de projeção em malha deslocada.
+  \item Conhecer SIMPLE, PISO e a interpolação de Rhie--Chow.
+  \item Validar com o problema da cavidade (Ghia et al., 1982).
+\end{itemize}
+
+\begin{conceito}{Equações e o ``problema da pressão''}
+\begin{gather*}
+  \nabla\cdot\mathbf{u}=0,\\
+  \frac{\partial\mathbf{u}}{\partial t}+(\mathbf{u}\cdot\nabla)\mathbf{u}
+  = -\frac{1}{\rho}\nabla p + \nu\nabla^2\mathbf{u} + \mathbf{g}.
+\end{gather*}
+Não há equação de evolução para $p$: ela é o \emph{multiplicador de
+Lagrange} que impõe $\nabla\cdot\mathbf{u}=0$. Tomando o divergente do
+momento surge uma \textbf{equação de Poisson para a pressão} --- elíptica,
+global, e geralmente a parte mais cara do cálculo.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: Navier--Stokes]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\partial\mathbf u/\partial t$ --- aceleração local.
+  \item $(\mathbf u\cdot\nabla)\mathbf u$ --- advecção, \emph{não linear}: é
+        daqui que nasce a turbulência.
+  \item $-\nabla p/\rho$ --- força de pressão; $p$ [Pa].
+  \item $\nu\nabla^2\mathbf u$ --- difusão viscosa; $\nu=\mu/\rho$ é a
+        viscosidade cinemática [m$^2$/s] (ar: $\approx1{,}5\times10^{-5}$).
+  \item $\mathbf g$ --- gravidade [m/s$^2$].
+  \item $Re=UL/\nu$ --- razão entre inércia e viscosidade.
+\end{itemize}
+\textbf{Poisson da pressão}: tomando o divergente do momento e usando
+$\nabla\cdot\mathbf u=0$, obtém-se $\nabla^2p=-\rho\,\nabla\cdot[(\mathbf u\cdot\nabla)\mathbf u]$.
+\origem Euler (1757) escreveu as equações sem viscosidade. Claude-Louis
+Navier (1822) incluiu o atrito a partir de um modelo molecular; George
+Stokes (1845) as rederivou como teoria do contínuo. Osborne Reynolds (1883)
+mostrou, com corante num tubo, que o adimensional $UL/\nu$ governa a
+transição para a turbulência.
+\end{dicionario}
+
+
+\begin{conceito}{Malha deslocada, \emph{checkerboard} e Rhie--Chow}
+Em malha colocalizada com interpolação central, um campo de pressão em
+``tabuleiro de xadrez'' ($+1,-1,+1,\ldots$) tem gradiente discreto nulo e
+é invisível ao momento: soluções espúrias. Remédios:
+\begin{itemize}
+  \item \textbf{Malha deslocada} (\emph{staggered}, Harlow \& Welch): velocidades
+        nas faces, pressão nos centros. Robusto, didático; usado no FDS.
+  \item \textbf{Interpolação de Rhie--Chow}: em malha colocalizada, a
+        velocidade de face inclui um termo de gradiente de pressão
+        compacto. É o que OpenFOAM e Fluent fazem.
+\end{itemize}
+\end{conceito}
+
+\begin{conceito}{Projeção (Chorin) e família SIMPLE}
+\textbf{Projeção}, por passo de tempo:
+\begin{enumerate}
+  \item Velocidade intermediária sem pressão:
+        \[\mathbf{u}^* = \mathbf{u}^n + \Delta t\,\big[-(\mathbf{u}\cdot\nabla)\mathbf{u}+\nu\nabla^2\mathbf{u}\big]^n.\]
+  \item Poisson: $\nabla^2 p^{n+1} = \frac{\rho}{\Delta t}\nabla\cdot\mathbf{u}^*$.
+  \item Correção: $\mathbf{u}^{n+1}=\mathbf{u}^*-\frac{\Delta t}{\rho}\nabla p^{n+1}$.
+\end{enumerate}
+\textbf{SIMPLE} (Patankar \& Spalding, 1972): iterativo para regime
+permanente, com correção de pressão e sub-relaxação. \textbf{SIMPLEC} e
+\textbf{PISO} (Issa, 1986) são variantes; \textbf{PIMPLE} (OpenFOAM) combina
+PISO e SIMPLE para transientes com passos grandes.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: projeção e siglas]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\mathbf u^*$ --- velocidade intermediária, que \emph{não} respeita
+        $\nabla\cdot\mathbf u=0$; a pressão é o que a ``projeta'' no espaço
+        de campos sem divergente.
+  \item SIMPLE --- \emph{Semi-Implicit Method for Pressure-Linked Equations}.
+  \item PISO --- \emph{Pressure-Implicit with Splitting of Operators}.
+  \item MAC --- \emph{Marker-And-Cell}, a malha deslocada original.
+\end{itemize}
+\origem A base matemática é a decomposição de Helmholtz--Hodge: todo campo
+vetorial é soma de um campo sem divergente e de um gradiente. Alexandre
+Chorin (1968) e Roger Temam (1969) criaram o método de projeção de forma
+independente. A malha deslocada vem do método MAC de Harlow \& Welch (Los
+Alamos, 1965).
+\end{dicionario}
+
+
+\begin{lstlisting}[caption={Estrutura de um passo de projecao (pseudocodigo Julia)}]
+function passo!(u, v, p, dt, nu, rho, malha)
+    us, vs = predicao(u, v, dt, nu, malha)    # adveccao + difusao
+    rhs = (rho/dt) .* divergente(us, vs, malha)
+    resolve_poisson!(p, rhs, malha)          # CG ou multigrid
+    corrige!(u, v, us, vs, p, dt, rho, malha)
+    aplica_contornos!(u, v, malha)
+    return maximum(abs, divergente(u, v, malha))   # deve ser ~0
+end
+\end{lstlisting}
+
+\begin{tarefa}{Cavidade com tampa deslizante}
+\enunciado Implemente o método de projeção 2D em malha deslocada para a
+cavidade quadrada com tampa móvel ($U=1$, $L=1$). Rode $Re=100$, $400$ e
+$1000$ até o regime permanente.
+\entregaveis
+\begin{itemize}
+  \item Linhas de corrente e campo de pressão.
+  \item Perfis de $u$ na linha vertical central e $v$ na horizontal central,
+        sobrepostos aos dados tabelados de Ghia, Ghia \& Shin (1982).
+  \item Histórico de $\max|\nabla\cdot\mathbf{u}|$ e de um ponto monitor.
+  \item Estudo com 3 malhas (ex.: $32^2$, $64^2$, $128^2$) --- será reutilizado
+        no Módulo 14.
+\end{itemize}
+\criterio perfis em $Re=100$ e $400$ visualmente sobrepostos aos de Ghia na
+malha mais fina; divergente no nível da tolerância do solver de Poisson.
+\reflexao\ Quanto do tempo de CPU foi gasto no Poisson? O que mudaria com
+multigrid? Por que isso é ainda mais crítico em 3D?
+\end{tarefa}
+
+\begin{tarefa}{Escoamento ao redor de um obstáculo}
+\enunciado Adapte o código para um canal 2D com um bloco quadrado de lado $H$
+(represente-o por células bloqueadas). Rode $Re_H=20$ e $Re_H=150$.
+\entregaveis\ Comprimento da zona de recirculação a jusante ($Re_H=20$);
+frequência de desprendimento de vórtices e número de Strouhal ($Re_H=150$).
+\criterio $St$ na faixa da literatura para cilindro quadrado ($\approx0{,}14$--$0{,}16$).
+\reflexao\ Um módulo de FPSO é uma floresta de obstáculos: vasos, tubulações,
+racks. O que acontece com uma nuvem de gás presa numa zona de recirculação?
+Como isso afeta o tempo de residência e o volume inflamável?
+\end{tarefa}
+
+\begin{armadilha}
+Declarar convergência porque ``os resíduos caíram''. Em cavidades e em
+módulos semiconfinados, a solução pode ser fisicamente transiente
+(desprendimento de vórtices); um solver estacionário vai oscilar ou
+``convergir'' para um estado artificial. Sempre monitore pontos físicos.
+\end{armadilha}
+
+\begin{critico}
+\begin{itemize}
+  \item Gás vazado tem densidade diferente do ar. Em que condições a hipótese
+        incompressível (ou de Boussinesq) ainda serve para dispersão? E para
+        explosão?
+  \item Por que códigos de explosão usam formulações compressíveis enquanto
+        muitos estudos de dispersão usam solvers de baixo Mach?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+acoplamento pressão-velocidade / \emph{pressure-velocity coupling}; método
+de projeção / \emph{projection method}; malha deslocada / \emph{staggered
+grid}; interpolação de Rhie--Chow; SIMPLE; PISO; PIMPLE; equação de Poisson
+/ \emph{pressure Poisson equation}; cavidade / \emph{lid-driven cavity}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Ferziger, J. H.; Perić, M.; Street, R. L. \emph{Computational Methods for Fluid Dynamics}. 4.\,ed. Springer, 2020.
+  \item Chorin, A. J. Numerical solution of the Navier--Stokes equations. \emph{Math. Comp.}, 22:745--762, 1968.
+  \item Patankar, S. V.; Spalding, D. B. A calculation procedure for heat, mass and momentum transfer in three-dimensional parabolic flows. \emph{Int. J. Heat Mass Transfer}, 15:1787--1806, 1972.
+  \item Rhie, C. M.; Chow, W. L. Numerical study of the turbulent flow past an airfoil with trailing edge separation. \emph{AIAA J.}, 21(11):1525--1532, 1983.
+  \item Ghia, U.; Ghia, K. N.; Shin, C. T. High-Re solutions for incompressible flow using the Navier--Stokes equations and a multigrid method. \emph{J. Comput. Phys.}, 48:387--411, 1982.
+  \item Issa, R. I. Solution of the implicitly discretised fluid flow equations by operator-splitting. \emph{J. Comput. Phys.}, 62:40--65, 1986.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Ferziger, Perić \& Street (2020)}, caps.\ 7--8: acoplamento pressão-velocidade em malhas estruturadas e não estruturadas.
+  \item \textbf{Harlow, F. H.; Welch, J. E.} Numerical calculation of time-dependent viscous incompressible flow of fluid with free surface. \emph{Phys.\ Fluids}, 8:2182--2189, 1965. O nascimento da malha deslocada.
+  \item \textbf{Brown, D. L.; Cortez, R.; Minion, M. L.} Accurate projection methods for the incompressible Navier--Stokes equations. \emph{J.\ Comput.\ Phys.}, 168:464--499, 2001. As sutilezas de condições de contorno na projeção.
+  \item \textbf{Barba \& Forsyth (2018)}, ``12 steps'': se travar, refaça os passos 9--12.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\part{Turbulência e escoamentos atmosféricos}
+% ======================================================================
+
+\chapter{Turbulência: física e modelagem}
+
+\objetivos
+\begin{itemize}
+  \item Estimar escalas turbulentas e o custo de DNS, LES e RANS.
+  \item Entender a hipótese de Boussinesq e os modelos $k$-$\varepsilon$, $k$-$\omega$ e SST.
+  \item Usar funções de parede e interpretar $y^+$.
+  \item Reconhecer o papel do número de Schmidt turbulento na dispersão.
+\end{itemize}
+
+\begin{conceito}{Cascata de energia e escalas de Kolmogorov}
+A energia entra nos grandes turbilhões (escala integral $\ell$) e é
+transferida a escalas menores até ser dissipada na escala de Kolmogorov:
+\[
+  \eta=\left(\frac{\nu^3}{\varepsilon}\right)^{1/4},\qquad
+  \frac{\ell}{\eta}\sim Re_\ell^{3/4}.
+\]
+Resolver tudo (DNS) em 3D exige $N\sim Re^{9/4}$ pontos --- inviável para
+escoamentos industriais. Daí a modelagem.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: escalas turbulentas]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\varepsilon$ --- taxa de dissipação de energia cinética turbulenta
+        por unidade de massa [m$^2$/s$^3$ = W/kg].
+  \item $\eta$ --- escala de Kolmogorov [m]: tamanho dos menores
+        turbilhões, onde a viscosidade converte energia em calor.
+  \item $\ell$ --- escala integral [m]: tamanho dos turbilhões que contêm a
+        energia (no módulo de FPSO, da ordem dos equipamentos).
+  \item $u'$ --- flutuação de velocidade (rms) [m/s]; $Re_\ell=u'\ell/\nu$.
+\end{itemize}
+\textbf{Como se deriva $\eta$:} nas menores escalas só importam $\nu$
+[m$^2$/s] e $\varepsilon$ [m$^2$/s$^3$]; a única combinação com dimensão de
+comprimento é $(\nu^3/\varepsilon)^{1/4}$. Análise dimensional pura.
+\origem A imagem da cascata é de Lewis Fry Richardson (1922). Andrei
+Kolmogorov formalizou as hipóteses de similaridade em 1941 (teoria ``K41''),
+um dos resultados mais influentes da física do século XX.
+\end{dicionario}
+
+
+\begin{conceito}{RANS, Boussinesq e o modelo $k$-$\varepsilon$}
+Decompondo $u_i=\bar u_i+u_i'$ e promediando surge o tensor de Reynolds
+$-\rho\overline{u_i'u_j'}$ (problema de fechamento). Com densidade variável
+usa-se a média de Favre ($\tilde u = \overline{\rho u}/\bar\rho$).
+\textbf{Hipótese de Boussinesq:}
+\begin{gather*}
+  -\overline{u_i'u_j'} = \nu_t\left(\frac{\partial\bar u_i}{\partial x_j}
+  +\frac{\partial\bar u_j}{\partial x_i}\right)-\frac23 k\,\delta_{ij},\\
+  \nu_t = C_\mu\frac{k^2}{\varepsilon}.
+\end{gather*}
+$k$-$\varepsilon$ padrão (Launder \& Spalding, 1974): $C_\mu=0{,}09$,
+$C_{1\varepsilon}=1{,}44$, $C_{2\varepsilon}=1{,}92$, $\sigma_k=1{,}0$,
+$\sigma_\varepsilon=1{,}3$. Variantes: RNG, \emph{realizable}. Alternativas:
+$k$-$\omega$ (Wilcox) e \textbf{SST} (Menter, 1994), melhor em separação e
+gradientes adversos.
+
+\textbf{Flutuabilidade}: em escoamentos estratificados (gás denso, plumas
+quentes) adiciona-se produção/destruição $G_b = -\frac{\nu_t}{\sigma_t}\,
+\mathbf{g}\cdot\frac{\nabla\bar\rho}{\bar\rho}$ nas equações de $k$ (e
+$\varepsilon$). Esquecer isso superestima a mistura de nuvens densas.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: RANS e $k$-$\varepsilon$]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\bar u$ --- média de Reynolds; $\tilde u$ --- média de Favre
+        (ponderada pela massa); $u'$ --- flutuação.
+  \item $k=\tfrac12\overline{u_i'u_i'}$ --- energia cinética turbulenta [m$^2$/s$^2$].
+  \item $\nu_t$ --- viscosidade turbulenta [m$^2$/s]: propriedade do
+        \emph{escoamento}, não do fluido; tipicamente $10^2$ a $10^5$ vezes $\nu$.
+  \item $\delta_{ij}$ --- delta de Kronecker (1 se $i=j$, 0 caso contrário).
+  \item $P_k=\mu_t S^2$ --- produção de $k$ por cisalhamento, $S=\sqrt{2S_{ij}S_{ij}}$.
+\end{itemize}
+\textbf{Equações completas} (forma de densidade variável):
+\begin{align*}
+  \frac{\partial(\rho k)}{\partial t}+\nabla\cdot(\rho\mathbf u k)
+  &=\nabla\cdot\Big[\Big(\mu+\frac{\mu_t}{\sigma_k}\Big)\nabla k\Big]\\
+  &\quad+P_k+G_b-\rho\varepsilon,\\
+  \frac{\partial(\rho\varepsilon)}{\partial t}+\nabla\cdot(\rho\mathbf u\varepsilon)
+  &=\nabla\cdot\Big[\Big(\mu+\frac{\mu_t}{\sigma_\varepsilon}\Big)\nabla\varepsilon\Big]\\
+  &\quad+C_{1\varepsilon}\frac{\varepsilon}{k}\left(P_k+C_{3\varepsilon}G_b\right)
+   -C_{2\varepsilon}\rho\frac{\varepsilon^2}{k}.
+\end{align*}
+\origem Reynolds (1895) propôs a decomposição média + flutuação. Joseph
+Boussinesq (1877) postulou que as tensões turbulentas se comportam como as
+viscosas, com uma viscosidade ``aparente''. Alexandre Favre (1965) introduziu
+a média ponderada pela massa. O $k$-$\varepsilon$ veio de Jones \& Launder
+(1972) e Launder \& Spalding (1974); o SST de Florian Menter (1994), na NASA.
+\end{dicionario}
+
+
+\begin{conceito}{Paredes, $y^+$ e anomalias conhecidas}
+$y^+ = u_\tau y/\nu$. Lei logarítmica: $u^+ = \frac{1}{\kappa}\ln y^+ + B$,
+$\kappa\approx0{,}41$, $B\approx5{,}0$, válida para $30\lesssim y^+\lesssim
+300$. Funções de parede exigem a primeira célula nessa faixa; modelos
+\emph{low-Re} exigem $y^+\sim1$. Em módulos offshore com milhares de
+obstáculos, quase sempre se usam funções de parede --- ou, em códigos do
+tipo PDR, os obstáculos nem são resolvidos (Módulo 13).
+
+\textbf{Anomalia do ponto de estagnação:} o $k$-$\varepsilon$ padrão
+superestima $k$ onde o escoamento incide em obstáculos, exagerando a mistura
+local. Correções do tipo Kato--Launder e limitadores de produção existem.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: lei da parede]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\tau_w$ --- tensão de cisalhamento na parede [Pa].
+  \item $u_\tau=\sqrt{\tau_w/\rho}$ --- velocidade de atrito [m/s].
+  \item $y$ --- distância à parede; $y^+$ --- essa distância em ``unidades
+        viscosas''; $u^+=\bar u/u_\tau$.
+  \item $\kappa\approx0{,}41$ --- constante de von Kármán; $B\approx5{,}0$.
+\end{itemize}
+\origem Ludwig Prandtl e Theodore von Kármán (anos 1920--30) chegaram ao
+perfil logarítmico; Clark Millikan (1938) mostrou que ele resulta de
+compatibilizar a lei da parede com a lei do defeito na região de
+sobreposição. As funções de parede para CFD são de Launder \& Spalding (1974).
+\end{dicionario}
+
+
+\begin{conceito}{LES e o número de Schmidt turbulento}
+\textbf{LES} resolve os grandes turbilhões e modela os menores (Smagorinsky:
+$\nu_t=(C_s\Delta)^2|\bar S|$). Captura flutuações e intermitência ---
+crucial em incêndios (FDS é LES). Custo de 10 a 100 vezes o RANS.
+
+\textbf{Schmidt turbulento} $Sc_t = \nu_t/D_t$, tipicamente $0{,}7$--$1{,}0$.
+A difusividade de espécie é $D_t=\nu_t/Sc_t$: um parâmetro escolhido pelo
+usuário que muda diretamente o tamanho da nuvem.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: LES e $Sc_t$]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\Delta$ --- largura do filtro LES, em geral o tamanho da célula.
+  \item $|\bar S|=\sqrt{2\bar S_{ij}\bar S_{ij}}$ --- taxa de deformação
+        resolvida [1/s]; $C_s\approx0{,}1$--$0{,}2$.
+  \item $D_t$ --- difusividade turbulenta de massa [m$^2$/s].
+  \item $Sc=\nu/D$ (molecular) e $Sc_t=\nu_t/D_t$ (turbulento).
+\end{itemize}
+\origem Joseph Smagorinsky criou seu modelo (1963) para previsão do tempo
+--- LES nasceu na meteorologia. Douglas Lilly (1967) estimou $C_s\approx0{,}17$
+teoricamente. O número de Schmidt homenageia Ernst Schmidt (1892--1975);
+$Sc_t\approx1$ é herança da \emph{analogia de Reynolds} (momento e massa
+transportados pelos mesmos turbilhões).
+\end{dicionario}
+
+
+\begin{tarefa}{Ordens de grandeza num módulo de FPSO}
+\enunciado Para vento de 5 m/s atravessando um módulo de processo de 20 m de
+altura, estime: $Re$, a dissipação $\varepsilon\sim u'^3/\ell$ (adote
+intensidade turbulenta de 10--20\%), $\eta$, o número de pontos para DNS e
+para uma LES que resolva 80\% da energia (estime $\Delta\sim\ell/10$).
+Faça o mesmo para um jato de gás saindo de um furo de 25 mm a velocidade sônica.
+\entregaveis\ Planilha ou script com as contas e uma tabela-resumo.
+\criterio números coerentes e justificativa das hipóteses.
+\reflexao\ Qual dos dois problemas (vento no módulo ou jato perto do furo)
+é mais difícil de resolver numericamente, e por quê? Como os códigos
+industriais contornam o problema do jato? (Spoiler: Módulo 7.)
+\end{tarefa}
+
+\begin{tarefa}{Canal turbulento 1D: do comprimento de mistura ao $k$-$\varepsilon$}
+\enunciado Para escoamento plenamente desenvolvido entre placas, a equação
+de momento se reduz a uma EDO em $y$:
+$\frac{d}{dy}\left[(\nu+\nu_t)\frac{d\bar u}{dy}\right]=\frac{1}{\rho}\frac{dp}{dx}$.
+(a) Feche com comprimento de mistura de Prandtl e amortecimento de van
+Driest; (b) feche com $k$-$\varepsilon$ com funções de parede. Use
+$Re_\tau=590$ e compare com dados de DNS de canal (Moser, Kim \& Mansour,
+1999, disponíveis publicamente).
+\entregaveis\ Perfil $u^+\times y^+$ em escala log, com lei da parede, DNS
+e seus dois modelos; perfil de $\nu_t$.
+\criterio a região logarítmica dos dois modelos coincide com a DNS dentro de
+5\%.
+\reflexao\ Que parte do perfil cada modelo erra mais, e por que isso
+importaria (ou não) para a dispersão de um gás liberado junto ao convés?
+\end{tarefa}
+
+\begin{tarefa}{OpenFOAM: degrau descendente com dois modelos}
+\enunciado Rode o tutorial \texttt{pitzDaily} (\texttt{simpleFoam}) com
+$k$-$\varepsilon$ e com $k$-$\omega$ SST. Depois adicione um escalar passivo
+injetado a montante e varie $Sc_t\in\{0{,}5;\,0{,}7;\,1{,}0\}$.
+\entregaveis\ Comprimento de recolamento para cada modelo; mapa de $y^+$;
+curvas de concentração numa linha a jusante para os três $Sc_t$.
+\criterio você justifica, por escrito, qual modelo usaria e com qual $Sc_t$,
+citando ao menos uma referência.
+\reflexao\ A diferença entre modelos de turbulência foi maior ou menor que
+a diferença entre valores de $Sc_t$? O que isso diz sobre onde concentrar
+esforço de análise de sensibilidade?
+\end{tarefa}
+
+\begin{professor}
+Quando um aluno me pergunta ``qual é o melhor modelo de turbulência?'', eu
+devolvo: ``melhor para quê, validado contra o quê?''. Em dispersão de gás em
+módulos congestionados, o $k$-$\varepsilon$ com correções de flutuabilidade
+continua sendo a espinha dorsal dos códigos industriais, não por ser o mais
+sofisticado, mas porque tem décadas de validação \emph{nesse tipo de
+problema}. Sofisticação sem validação é só custo.
+\end{professor}
+
+\begin{critico}
+\begin{itemize}
+  \item Um modelo RANS dá a concentração \emph{média}. A ignição depende da
+        concentração \emph{instantânea}. Como reconciliar isso? (Revisite no Módulo 8.)
+  \item Se LES é mais fiel, por que a indústria de explosões ainda usa RANS
+        em escala massiva?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+cascata de energia / \emph{energy cascade}; escala de Kolmogorov; RANS;
+média de Favre / \emph{Favre averaging}; hipótese de Boussinesq /
+\emph{eddy-viscosity hypothesis}; função de parede / \emph{wall function};
+$y^+$; SST; LES; Smagorinsky; número de Schmidt turbulento /
+\emph{turbulent Schmidt number}; produção por empuxo / \emph{buoyancy production}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Pope, S. B. \emph{Turbulent Flows}. Cambridge University Press, 2000.
+  \item Wilcox, D. C. \emph{Turbulence Modeling for CFD}. 3.\,ed. DCW Industries, 2006.
+  \item Launder, B. E.; Spalding, D. B. The numerical computation of turbulent flows. \emph{Comput. Methods Appl. Mech. Eng.}, 3:269--289, 1974.
+  \item Menter, F. R. Two-equation eddy-viscosity turbulence models for engineering applications. \emph{AIAA J.}, 32(8):1598--1605, 1994.
+  \item Moser, R. D.; Kim, J.; Mansour, N. N. Direct numerical simulation of turbulent channel flow up to $Re_\tau=590$. \emph{Phys. Fluids}, 11:943--945, 1999.
+  \item Smagorinsky, J. General circulation experiments with the primitive equations. \emph{Mon. Weather Rev.}, 91:99--164, 1963.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Tennekes, H.; Lumley, J. L.} \emph{A First Course in Turbulence}. MIT Press, 1972. Raciocínio físico por ordens de grandeza --- exatamente o que este módulo exige.
+  \item \textbf{Davidson, P. A.} \emph{Turbulence: An Introduction for Scientists and Engineers}. 2.\,ed. Oxford, 2015. Mais acessível que Pope, com boa história.
+  \item \textbf{Pope (2000)}, caps.\ 6 (escalas), 7 (camadas limite) e 10--11 (RANS): referência definitiva.
+  \item \textbf{Tominaga, Y.; Stathopoulos, T.} Turbulent Schmidt numbers for CFD analysis with various types of flowfield. \emph{Atmos.\ Environ.}, 41:8091--8099, 2007. Revisão essencial sobre $Sc_t$ em dispersão.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Camada limite atmosférica e dispersão passiva}
+
+\objetivos
+\begin{itemize}
+  \item Descrever a camada limite atmosférica (CLA) e sua estabilidade.
+  \item Implementar o modelo gaussiano de pluma e entender suas hipóteses.
+  \item Impor perfis de entrada coerentes com o modelo de turbulência
+        (Richards \& Hoxey) e testar a homogeneidade horizontal.
+  \item Dimensionar domínios computacionais segundo boas práticas.
+\end{itemize}
+
+\begin{conceito}{Estabilidade atmosférica}
+A estabilidade controla a mistura vertical. Classes de Pasquill--Gifford:
+A (muito instável) a F (muito estável), D neutra. Na teoria de similaridade
+de Monin--Obukhov, a escala é o comprimento de Obukhov
+\[
+  L = -\frac{u_*^3\,\bar\theta}{\kappa\,g\,\overline{w'\theta'}} ,
+\]
+com $L<0$ instável, $L\rightarrow\infty$ neutra, $L>0$ estável. Em QRA,
+combinações típicas são \textbf{D5} (neutra, 5 m/s) e \textbf{F2} (estável,
+2 m/s); a segunda costuma gerar as maiores distâncias de dispersão em
+terra. Offshore, a estabilidade sobre o mar tem particularidades (diferença
+de temperatura ar-mar), e o ``vento dominante'' é dado pela rosa dos ventos
+da locação.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: estabilidade]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $u_*$ --- velocidade de atrito do vento junto à superfície [m/s].
+  \item $\theta$ --- temperatura potencial [K]: a que o ar teria se
+        trazido adiabaticamente a 1000 hPa.
+  \item $\overline{w'\theta'}$ --- fluxo turbulento de calor sensível
+        (cinemático) [K$\cdot$m/s]; positivo de dia (solo aquece o ar).
+  \item $z/L$ --- parâmetro de estabilidade: razão entre produção de
+        turbulência por empuxo e por cisalhamento.
+\end{itemize}
+\textbf{Classes de Pasquill} são escolhidas por tabela a partir de três
+observações simples: vento a 10 m, insolação (de dia) e nebulosidade (à noite).
+\origem Alexander Obukhov definiu $L$ em 1946; Monin \& Obukhov (1954)
+criaram a teoria de similaridade. Frank Pasquill (1961) propôs as classes
+para uso prático com observações meteorológicas de rotina; Frank Gifford
+(1961) as converteu nas curvas de $\sigma_y$ e $\sigma_z$.
+\end{dicionario}
+
+
+\begin{conceito}{Modelo gaussiano de pluma}
+Para fonte contínua $Q$ (kg/s) a altura $H$, vento $u$, com reflexão no solo:
+\begin{multline*}
+  C(x,y,z)=\frac{Q}{2\pi u\sigma_y\sigma_z}
+  \exp\!\left(-\frac{y^2}{2\sigma_y^2}\right)\\
+  \times\left[\exp\!\left(-\frac{(z-H)^2}{2\sigma_z^2}\right)
+       +\exp\!\left(-\frac{(z+H)^2}{2\sigma_z^2}\right)\right].
+\end{multline*}
+$\sigma_y(x)$ e $\sigma_z(x)$ dependem da classe de estabilidade (ex.:
+correlações de Briggs para campo aberto, classe D:
+$\sigma_y=0{,}08x(1+0{,}0001x)^{-1/2}$, $\sigma_z=0{,}06x(1+0{,}0015x)^{-1/2}$;
+classe F: $\sigma_y=0{,}04x(1+0{,}0001x)^{-1/2}$, $\sigma_z=0{,}016x(1+0{,}0003x)^{-1}$).
+\textbf{Hipóteses:} gás passivo (sem empuxo nem momento), terreno plano sem
+obstáculos, vento e estabilidade homogêneos, regime permanente.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: pluma gaussiana]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $C$ --- concentração [kg/m$^3$]; $Q$ --- vazão da fonte [kg/s].
+  \item $u$ --- velocidade do vento na altura da liberação [m/s].
+  \item $\sigma_y,\sigma_z$ --- desvios-padrão lateral e vertical da pluma [m].
+  \item $H$ --- altura efetiva: altura da fonte mais a elevação da pluma.
+  \item Termo com $(z+H)$ --- \emph{fonte-imagem}: reflexão total no solo
+        (o gás não ``atravessa'' o chão).
+  \item Conversão para \%vol: $x=\dfrac{C\,R\,T}{p\,M}\times100$.
+\end{itemize}
+\textbf{Como se deriva:} a solução fundamental da difusão é uma gaussiana com
+variância $\sigma^2=2Kt$; o vento transporta essa nuvem, trocando $t$ por $x/u$.
+\origem G.\,I. Taylor (1921) mostrou como a dispersão turbulenta cresce com o
+tempo; O.\,G. Sutton (1932, 1947) formulou a pluma; Pasquill--Gifford (1961)
+e Briggs (1973) forneceram as curvas de $\sigma$ usadas até hoje.
+\end{dicionario}
+
+
+\begin{conceito}{CFD da CLA: perfis de entrada e homogeneidade}
+Para CLA neutra com $k$-$\varepsilon$ (Richards \& Hoxey, 1993):
+\begin{gather*}
+  u(z)=\frac{u_*}{\kappa}\ln\frac{z+z_0}{z_0},\\
+  k=\frac{u_*^2}{\sqrt{C_\mu}},\qquad
+  \varepsilon(z)=\frac{u_*^3}{\kappa(z+z_0)} .
+\end{gather*}
+Problema clássico (Blocken et al., 2007): funções de parede de rugosidade
+incompatíveis com $z_0$ fazem o perfil ``decair'' antes de chegar à região
+de interesse. Teste: simule o domínio \emph{vazio} e compare perfis na
+entrada e no local do obstáculo. Boas práticas de domínio (COST 732): $\sim
+5H$ a montante, $\sim15H$ a jusante, topo a $\sim5H$ acima do obstáculo,
+razão de bloqueio $<3\%$.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: perfis de entrada]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $z_0$ --- comprimento de rugosidade aerodinâmica [m], da ordem de
+        1/30 da altura dos elementos rugosos (mar aberto $\sim10^{-4}$ m;
+        área industrial $\sim0{,}5$--$1$ m).
+  \item $u_*$ --- obtida invertendo o perfil log com o vento de referência a 10 m.
+  \item $C_\mu$ --- a mesma constante do $k$-$\varepsilon$ (0,09).
+\end{itemize}
+\textbf{Como se deriva:} impõe-se que o perfil log seja solução exata das
+equações $k$-$\varepsilon$ com tensão constante e produção = dissipação. O
+resultado é um conjunto \emph{coerente} com o modelo de turbulência.
+\origem Richards \& Hoxey (1993), engenharia do vento; a classificação de
+rugosidades é de Davenport, revisada por Wieringa (1992).
+\end{dicionario}
+
+
+\begin{tarefa}{Calculadora de pluma gaussiana}
+\enunciado Implemente o modelo gaussiano com $\sigma$ de Briggs para as seis
+classes. Para metano liberado a 2 kg/s, a 10 m de altura, calcule e plote
+(i) a concentração no eixo ao nível do solo e (ii) o contorno de 50\% do LFL
+em planta, para D5 e F2. Converta corretamente kg/m$^3$ para \%vol.
+\entregaveis\ Código com testes (ex.: integral do fluxo de massa num plano
+transversal deve igualar $Q$); figuras; tabela de distâncias até LFL e $\frac12$LFL.
+\criterio o teste de conservação de fluxo passa em todas as distâncias.
+\reflexao\ Metano liberado de um vaso a alta pressão é passivo? Em que
+distância ele ``se torna'' passivo? Por que a gaussiana é usada em QRA mesmo
+assim?
+\end{tarefa}
+
+\begin{tarefa}{Teste de homogeneidade horizontal}
+\enunciado No OpenFOAM (ou no seu código 2D com $k$-$\varepsilon$), simule
+um domínio vazio de 1000 m $\times$ 200 m com perfis de Richards \& Hoxey,
+$u_*$ correspondente a 5 m/s a 10 m e $z_0=0{,}0002$ m (mar aberto) e
+$z_0=0{,}1$ m (terra). Compare perfis de $u$, $k$ e $\varepsilon$ na entrada,
+no meio e na saída.
+\entregaveis\ Perfis sobrepostos; desvio percentual de $u$ e $k$ a 10 m de
+altura; descrição da condição de parede usada.
+\criterio desvio de $u$ menor que 5\% ao longo do domínio (ou explicação
+documentada do porquê não foi possível).
+\reflexao\ Se o perfil decai 20\% antes de atingir a plataforma, que vento
+você \emph{realmente} simulou? Como isso aparece num relatório de
+consultoria se ninguém fizer este teste?
+\end{tarefa}
+
+\begin{tarefa}{CFD vs. gaussiana em terreno aberto}
+\enunciado Com seu código de dispersão do Módulo 3 estendido para 2D
+vertical (ou 3D), use o perfil logarítmico de vento e uma difusividade
+turbulenta vertical $K_z(z)=\kappa u_* z/Sc_t$ (teoria K). Compare a
+concentração ao nível do solo com a gaussiana classe D.
+\entregaveis\ Gráfico comparativo; discussão das diferenças no campo próximo
+e distante.
+\criterio você explica, com base física, as diferenças observadas.
+\reflexao\ Que obstáculos, em uma unidade de processo real, invalidariam a
+gaussiana completamente? É aí que o CFD ``paga a conta''.
+\end{tarefa}
+
+\begin{critico}
+\begin{itemize}
+  \item Simular 8 ou 12 direções de vento com igual detalhe é sensato, se a
+        rosa dos ventos mostra 40\% de frequência num único setor?
+  \item Calmaria (vento quase nulo) é o pior caso para dispersão? Para quais
+        geometrias isso é verdade, e para quais não é?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+camada limite atmosférica / \emph{atmospheric boundary layer, ABL};
+estabilidade atmosférica / \emph{atmospheric stability}; classes de
+Pasquill--Gifford; comprimento de Obukhov / \emph{Obukhov length}; rugosidade
+aerodinâmica / \emph{aerodynamic roughness length, $z_0$}; pluma gaussiana /
+\emph{Gaussian plume}; homogeneidade horizontal / \emph{horizontal homogeneity};
+teoria K / \emph{K-theory}; rosa dos ventos / \emph{wind rose}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Seinfeld, J. H.; Pandis, S. N. \emph{Atmospheric Chemistry and Physics}. 3.\,ed. Wiley, 2016. (Caps. sobre CLA e dispersão)
+  \item Turner, D. B. \emph{Workbook of Atmospheric Dispersion Estimates}. 2.\,ed. Lewis Publishers, 1994.
+  \item Richards, P. J.; Hoxey, R. P. Appropriate boundary conditions for computational wind engineering models using the $k$-$\varepsilon$ turbulence model. \emph{J. Wind Eng. Ind. Aerodyn.}, 46--47:145--153, 1993.
+  \item Blocken, B.; Stathopoulos, T.; Carmeliet, J. CFD simulation of the atmospheric boundary layer: wall function problems. \emph{Atmos. Environ.}, 41:238--252, 2007.
+  \item Franke, J. et al. \emph{Best Practice Guideline for the CFD Simulation of Flows in the Urban Environment}. COST Action 732, 2007.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Stull, R. B.} \emph{An Introduction to Boundary Layer Meteorology}. Kluwer, 1988. A bíblia da CLA; caps.\ 1, 5 e 9.
+  \item \textbf{Arya, S. P.} \emph{Introduction to Micrometeorology}. 2.\,ed. Academic Press, 2001. Mais curto e direto que Stull.
+  \item \textbf{Blocken, B.} Computational Fluid Dynamics for urban physics: importance, scales, possibilities, limitations and ten tips and tricks towards accurate and reliable simulations. \emph{Build.\ Environ.}, 91:219--245, 2015. Boas práticas transferíveis para plantas industriais.
+  \item \textbf{Turner (1994)}: para fazer contas de pluma à mão e ganhar intuição.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\part{Liberação, dispersão e detecção}
+% ======================================================================
+
+\chapter{Termodinâmica e modelagem da fonte de liberação}
+
+\objetivos
+\begin{itemize}
+  \item Calcular vazões de gás por orifício (subcrítica e crítica).
+  \item Modelar a despressurização transiente de um vaso.
+  \item Entender jatos subexpandidos e modelos de pseudo-fonte.
+  \item Reconhecer a fonte como a maior incerteza ``escondida'' do estudo.
+\end{itemize}
+
+\begin{conceito}{Escoamento por orifício e bloqueio sônico}
+O escoamento se torna \textbf{crítico (bloqueado)} quando
+\[
+  \frac{p_a}{p_0} \le \left(\frac{2}{\gamma+1}\right)^{\gamma/(\gamma-1)}
+  \quad(\approx0{,}53\ \text{para}\ \gamma=1{,}4).
+\]
+Nesse caso, a vazão mássica independe da pressão a jusante:
+\[
+  \dot m = C_d A\, p_0\sqrt{\frac{\gamma M}{Z R T_0}
+  \left(\frac{2}{\gamma+1}\right)^{(\gamma+1)/(\gamma-1)}} .
+\]
+$C_d$ tipicamente $0{,}6$--$0{,}85$ (furo de bordas vivas a bocal arredondado);
+$Z$ é o fator de compressibilidade (relevante a altas pressões de processo).
+Praticamente todo vazamento de gás de processo offshore é sônico na saída.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: vazão crítica]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $p_0,T_0$ --- pressão [Pa] e temperatura [K] de estagnação
+        (dentro do equipamento); $p_a$ --- pressão ambiente.
+  \item $\gamma=c_p/c_v$ --- razão de calores específicos.
+  \item $M$ --- massa molar [kg/mol!]; $R=8{,}314$ J/(mol$\cdot$K).
+  \item $Z$ --- fator de compressibilidade (gás real; $Z=1$ ideal).
+  \item $A$ --- área do furo [m$^2$]; $C_d$ --- coeficiente de descarga
+        (contração da veia e atrito).
+\end{itemize}
+\textbf{Como se deriva:} escoamento isentrópico + conservação de energia dão
+$\dot m(p_{\text{garganta}})$; essa função tem um máximo quando a garganta
+atinge Mach 1. Baixar $p_a$ além desse ponto não aumenta a vazão: a
+informação não sobe contra um escoamento sônico.
+\origem Barré de Saint-Venant e Laurent Wantzel (1839), estudando escoamento
+de ar por orifícios --- a ``fórmula de Saint-Venant--Wantzel''.
+\end{dicionario}
+
+
+\begin{conceito}{Despressurização (\emph{blowdown}) transiente}
+Balanços de massa e energia no vaso, com vazão pelo furo e/ou pela válvula de
+despressurização. Hipóteses limites: isotérmica ou isentrópica (adiabática
+reversível). A vazão cai com o tempo, e com ela o tamanho da nuvem. Em QRA,
+a duração do vazamento é tão importante quanto a vazão inicial: decide se a
+nuvem atinge regime permanente e se o isolamento (ESD) e a
+despressurização são eficazes.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: modelo mínimo de \emph{blowdown}]
+Para gás ideal em vaso de volume fixo $V$:
+\begin{gather*}
+  \frac{dm}{dt}=-\dot m(p,T),\\
+  \text{isotérmico: } p=p_0\frac{m}{m_0},\qquad
+  \text{isentrópico: } p=p_0\left(\frac{m}{m_0}\right)^{\gamma},
+\end{gather*}
+com $T=T_0(p/p_0)^{(\gamma-1)/\gamma}$ no caso isentrópico. O caso real fica
+entre os dois (troca de calor com as paredes). Modelos completos acoplam
+equação de estado de gás real e balanço de energia com a parede.
+\origem Balanço de massa e primeira lei aplicados a volume de controle; os
+modelos industriais de despressurização (ex.: Haque et al., 1992) refinam
+isso com estratificação líquido-vapor e transferência de calor.
+\end{dicionario}
+
+
+\begin{conceito}{Jatos subexpandidos e pseudo-fonte}
+Na saída sônica, $p_{\text{saída}}>p_a$: o jato expande através de um
+sistema de choques (disco de Mach) em poucos diâmetros. Resolver isso em CFD
+de dispersão exigiria células submilimétricas num domínio de centenas de
+metros. Solução: substituir o furo real por uma \textbf{pseudo-fonte}
+(\emph{notional nozzle}) já expandida à pressão ambiente, conservando massa
+(e, conforme o modelo, momento). No modelo de Birch et al. (1984), assumindo
+temperatura de estagnação e velocidade sônica na pseudo-fonte:
+\[
+  \frac{d_{ps}}{d} = \sqrt{C_d\,\frac{p_0}{p_a}}
+  \left(\frac{2}{\gamma+1}\right)^{(\gamma+1)/(4(\gamma-1))}.
+\]
+Outros modelos (Ewan \& Moodie, 1986; Birch et al., 1987) fazem hipóteses
+diferentes sobre temperatura e conservação de momento, e dão diâmetros e
+velocidades distintas. A escolha muda o campo próximo do jato.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: jato subexpandido]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $d$ --- diâmetro do furo; $d_{ps}$ --- diâmetro da pseudo-fonte.
+  \item $p_0/p_a$ --- razão de pressões; acima de $\approx1{,}9$ (ar) o jato
+        é subexpandido.
+  \item Disco de Mach: choque normal a $x_M\approx0{,}67\,d\sqrt{p_0/p_a}$
+        do furo (correlação de Ashkenas \& Sherman, 1966).
+\end{itemize}
+\origem O conceito de bocal ``fictício'' equivalente aparece em Thring \&
+Newby (1953) para jatos de densidade diferente; para jatos de gás natural a
+alta pressão, foi desenvolvido pela British Gas (Birch et al., 1984, 1987).
+\end{dicionario}
+
+
+\begin{conceito}{Escolha de cenários: tamanhos de furo e orientação}
+QRAs offshore discretizam furos em faixas (ex.: pequeno, médio, grande,
+ruptura), com frequências obtidas de bases como o \emph{Risk Assessment Data
+Directory} da IOGP ou do HSE. A orientação do jato (horizontal contra
+obstáculo, vertical, para baixo contra o convés) muda drasticamente a nuvem:
+um jato que colide com um vaso perde momento e forma nuvem maior e mais
+lenta.
+\end{conceito}
+
+\begin{tarefa}{Calculadora de fonte e \emph{blowdown}}
+\enunciado Para um separador de gás com volume de 30 m$^3$, pressão inicial
+de 80 bar(a), 40\,$^\circ$C, gás com $M=19$ kg/kmol e $\gamma=1{,}28$:
+(a) calcule a vazão inicial para furos de 5, 25 e 75 mm; (b) integre o
+\emph{blowdown} isentrópico e isotérmico (EDOs) até 1 bar(g), com e sem uma
+válvula de despressurização adicional; (c) verifique o instante em que o
+escoamento deixa de ser crítico.
+\entregaveis\ Função de vazão testada; curvas $\dot m(t)$ e $p(t)$; tabela
+com massa total liberada e tempo para cair a 50\% da vazão inicial.
+\criterio massa liberada integrada concorda com a variação de massa
+no vaso (erro $<0{,}1\%$).
+\reflexao\ Para o furo de 75 mm, uma simulação de dispersão em regime
+permanente com a vazão inicial é conservadora? É realista? Quando seria
+preferível usar uma vazão média ou uma simulação transiente?
+\end{tarefa}
+
+\begin{tarefa}{Pseudo-fontes em confronto}
+\enunciado Derive você mesmo a expressão de Birch (1984) a partir da
+conservação de massa. Implemente-a e mais um modelo da literatura (ex.: Ewan
+\& Moodie, que assume temperatura ambiente na pseudo-fonte). Para o furo de
+25 mm da tarefa anterior, compare $d_{ps}$, $u_{ps}$, $T_{ps}$ e fluxo de
+momento.
+\entregaveis\ Derivação; tabela comparativa; estimativa do tamanho de célula
+necessário para resolver a pseudo-fonte com 3 a 5 células.
+\criterio derivação correta e coerência dimensional.
+\reflexao\ Se dois modelos ``consagrados'' diferem em 30\% no momento do
+jato, quanto isso pode mudar a distância até o LFL? Como você documentaria
+essa escolha num relatório?
+\end{tarefa}
+
+\begin{armadilha}
+Gastar semanas refinando malha e modelo de turbulência enquanto a vazão
+de entrada foi calculada com $C_d$ arbitrário, gás ideal a 150 bar e sem
+transiente. A fonte é o primeiro termo da cadeia; seu erro se propaga
+para tudo.
+\end{armadilha}
+
+\begin{critico}
+\begin{itemize}
+  \item Liberações bifásicas (condensado, \emph{flashing}) formam aerossóis
+        e poças. Quais hipóteses deste módulo deixam de valer?
+  \item Por que muitas QRAs limitam a duração do vazamento a um valor fixo,
+        e quão defensável é isso?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+escoamento crítico / \emph{choked flow}; coeficiente de descarga /
+\emph{discharge coefficient}; despressurização / \emph{blowdown};
+jato subexpandido / \emph{under-expanded jet}; disco de Mach / \emph{Mach
+disk}; pseudo-fonte / \emph{notional nozzle, pseudo-source}; escoamento
+bifásico / \emph{two-phase release}; \emph{flashing}; frequência de
+vazamento / \emph{leak frequency}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item TNO. \emph{Methods for the Calculation of Physical Effects} (``Yellow Book''), CPR 14E. 3.\,ed., 1997/2005. (Cap. 2: liberações)
+  \item Birch, A. D.; Brown, D. R.; Dodson, M. G.; Swaffield, F. The structure and concentration decay of high pressure jets of natural gas. \emph{Combust. Sci. Technol.}, 36:249--261, 1984.
+  \item Birch, A. D.; Hughes, D. J.; Swaffield, F. Velocity decay of high pressure jets. \emph{Combust. Sci. Technol.}, 52:161--171, 1987.
+  \item Ewan, B. C. R.; Moodie, K. Structure and velocity measurements in underexpanded jets. \emph{Combust. Sci. Technol.}, 45:275--288, 1986.
+  \item CCPS. \emph{Guidelines for Chemical Process Quantitative Risk Analysis}. 2.\,ed. AIChE, 2000.
+  \item IOGP. \emph{Risk Assessment Data Directory --- Process Release Frequencies}. (Report 434-01, edição vigente.)
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Yellow Book (TNO)}, cap.\ 2: modelos de liberação com exemplos numéricos resolvidos.
+  \item \textbf{Franquet, E. et al.} Free underexpanded jets in a quiescent medium: a review. \emph{Prog.\ Aerosp.\ Sci.}, 77:25--53, 2015. Revisão moderna da física do jato subexpandido e das pseudo-fontes.
+  \item \textbf{Leung, J. C.} A generalized correlation for one-component homogeneous equilibrium flashing choked flow. \emph{AIChE J.}, 32:1743--1746, 1986. Porta de entrada para liberações bifásicas (método ômega).
+  \item \textbf{Crowl \& Louvar (2019)}, cap.\ 4: modelos de fonte em nível introdutório, bom para revisar.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Jatos, gases densos e nuvens inflamáveis}
+
+\objetivos
+\begin{itemize}
+  \item Formular o transporte de mistura com densidade variável e empuxo.
+  \item Distinguir regimes dominados por momento, empuxo e turbulência ambiente.
+  \item Calcular volume inflamável e nuvem estequiométrica equivalente (Q9).
+  \item Discutir médias temporais, flutuações e o critério de $\frac12$LFL.
+\end{itemize}
+
+\begin{conceito}{Equações de mistura com densidade variável}
+Para uma espécie com fração mássica $Y$:
+\begin{gather*}
+  \frac{\partial(\bar\rho\tilde Y)}{\partial t}+\nabla\cdot(\bar\rho\tilde{\mathbf u}\tilde Y)\\
+  =\nabla\cdot\left[\bar\rho\left(D+\frac{\nu_t}{Sc_t}\right)\nabla\tilde Y\right],\\[4pt]
+  \frac{1}{\rho}=\frac{RT}{p}\sum_i\frac{Y_i}{M_i}.
+\end{gather*}
+O momento inclui $(\bar\rho-\rho_a)\mathbf g$. Para diferenças pequenas,
+a aproximação de Boussinesq; para gás denso ou hidrogênio, densidade variável
+completa.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: mistura]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $Y$ --- fração mássica do gás vazado (0 a 1).
+  \item $D$ --- difusividade molecular [m$^2$/s], desprezível frente a
+        $\nu_t/Sc_t$ longe da fonte.
+  \item $M_i$ --- massa molar de cada componente.
+  \item Fração molar (=\,volumétrica para gás ideal), usada para LFL:
+        $x_i=\dfrac{Y_i/M_i}{\sum_j Y_j/M_j}$.
+\end{itemize}
+\textbf{Aproximação de Boussinesq}: a densidade varia \emph{só} no termo de
+empuxo $(\rho-\rho_a)\mathbf g$; nos demais termos usa-se $\rho_a$. Válida
+para $|\rho-\rho_a|/\rho_a\ll1$ (regra prática: $<10\%$).
+\origem A lei de mistura vem de Dalton (pressões parciais, 1801). A
+aproximação é de Oberbeck (1879) e Boussinesq (1903), em estudos de convecção.
+\end{dicionario}
+
+
+\begin{conceito}{Jatos, plumas e gás denso}
+\begin{itemize}
+  \item \textbf{Jato livre de momento}: a concentração no eixo decai como
+        $\bar Y_c\propto d_{\text{ef}}/x$, com $d_{\text{ef}}=d\sqrt{\rho_j/\rho_a}$.
+  \item \textbf{Número de Froude} densimétrico $Fr=u_j/\sqrt{g' d}$, com
+        $g'=g\,|\rho_j-\rho_a|/\rho_a$: separa o campo dominado pelo momento do
+        dominado pelo empuxo.
+  \item \textbf{Gás denso} (GLP, CO$_2$, gás frio de GNL): espalhamento
+        gravitacional, nuvem rasa e larga, mistura vertical suprimida pela
+        estratificação. Número de Richardson $Ri=g'h/u_*^2$ alto indica
+        comportamento denso. Velocidade da frente de corrente de gravidade:
+        $u_f\approx Fr_f\sqrt{g'h}$, com $Fr_f$ da ordem de 0,5 a 1.
+\end{itemize}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: jatos e gás denso]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $u_j$, $\rho_j$ --- velocidade e densidade do jato na fonte.
+  \item $d_{\text{ef}}$ --- diâmetro efetivo: corrige a diluição para a
+        diferença de densidade entre jato e ar.
+  \item $g'$ --- gravidade reduzida [m/s$^2$]: o ``peso aparente'' do gás.
+  \item $Fr$ --- inércia/empuxo. $Fr\gg1$: momento domina.
+  \item $Ri$ --- empuxo/turbulência. $Ri\gg1$: a estratificação suprime a
+        mistura vertical.
+  \item $h$ --- altura da nuvem; $Fr_f$ --- Froude da frente.
+\end{itemize}
+\origem William Froude (1810--1879) usou o adimensional para escalar
+modelos de navios; L.\,F. Richardson (1920) definiu seu número estudando a
+supressão da turbulência atmosférica; o diâmetro efetivo é de Thring \&
+Newby (1953).
+\end{dicionario}
+
+
+\begin{conceito}{Inflamabilidade, volume inflamável e Q9}
+Limites inferior e superior de inflamabilidade (LFL/UFL; metano
+$\approx5$--$15\%$vol). Para misturas, regra de Le Chatelier:
+$\mathrm{LFL}_{\text{mist}} = \left(\sum_i y_i/\mathrm{LFL}_i\right)^{-1}$.
+\begin{itemize}
+  \item \textbf{Volume inflamável}: volume de células com LFL $\le c\le$ UFL.
+        Superestima o perigo de explosão, pois mistura pobre perto do LFL
+        queima devagar.
+  \item \textbf{Nuvem estequiométrica equivalente (ESC, ``Q9'')}: cada célula
+        inflamável é ponderada pela reatividade da sua mistura em relação à
+        estequiométrica,
+        \[
+          Q9 = \sum_{\text{células}} V_i\,\frac{(S_L\,E)(c_i)}{(S_L\,E)_{\max}},
+        \]
+        com $S_L$ a velocidade laminar de chama e $E$ a razão de expansão.
+        Usada para ligar dispersão a explosão (Módulos 12--13).
+\end{itemize}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: inflamabilidade e Q9]
+\begin{itemize}[leftmargin=*,nosep]
+  \item LFL/UFL --- limites inferior/superior em \%vol no ar.
+  \item $y_i$ --- fração molar do componente $i$ \emph{no combustível}
+        (sem ar).
+  \item $V_i$ --- volume da célula $i$ [m$^3$]; $c_i$ --- concentração local.
+  \item $S_L$ --- velocidade laminar [m/s]; $E=\rho_u/\rho_b$ --- razão de
+        expansão. O produto $S_L E$ é a taxa de \emph{produção de volume}
+        da chama, e é isso que gera sobrepressão.
+\end{itemize}
+\origem Henry Le Chatelier (1891) propôs a regra de mistura. O conceito de
+nuvem equivalente e a família de definições numeradas (``Q5'', ``Q8'',
+``Q9'') vieram do desenvolvimento do código FLACS (Gexcon); Q9 se tornou o
+padrão de fato (Hansen et al., 2013).
+\end{dicionario}
+
+
+\begin{conceito}{Médias, flutuações e o critério de $\frac12$LFL}
+RANS fornece a média de Favre; a concentração instantânea flutua. Bolsões
+acima do LFL existem onde a média está abaixo dele. Por isso se usam
+critérios conservadores como $\frac12$LFL (ou $\frac{1}{4}$ para alguns fins)
+e se discutem razões pico/média. Também por isso detectores e ignição não
+``veem'' a média.
+\end{conceito}
+
+\begin{tarefa}{Corrente de gravidade (\emph{lock-exchange})}
+\enunciado Estenda seu solver 2D do Módulo 4 com a aproximação de Boussinesq
+e uma equação de transporte para a densidade (ou fração de gás). Inicialize
+um canal com fluido denso à esquerda e leve à direita, separados por uma
+comporta removida em $t=0$. Meça a velocidade da frente.
+\entregaveis\ Sequência de imagens da frente; gráfico posição da frente
+$\times$ tempo; $Fr_f = u_f/\sqrt{g'H}$ medido.
+\criterio $Fr_f$ próximo de 0,5 (teoria de Benjamin para troca total em
+canal) na fase de velocidade constante.
+\reflexao\ Num vazamento de gás denso no convés de uma plataforma, o que
+faz o papel da comporta? Que estruturas do convés (soleiras, drenos,
+\emph{grating}) mudariam essa física?
+\end{tarefa}
+
+\begin{tarefa}{Pós-processador de nuvem inflamável}
+\enunciado Escreva uma rotina que recebe um campo 3D de concentração (gere
+um sintético a partir da gaussiana do Módulo 6, ou exporte do OpenFOAM em
+VTK) e calcula: volume inflamável, volume acima de $\frac12$LFL, Q9, e
+extensão máxima da nuvem. Use dados de $S_L(\phi)$ e $E(\phi)$ que você
+gerará no Módulo 10 (por ora, use valores tabelados da literatura).
+\entregaveis\ Biblioteca de pós-processamento com testes (ex.: campo
+uniforme estequiométrico deve dar $Q9=V$); tabela para os cenários D5 e F2.
+\criterio testes passam; $Q9<V_{\text{infl}}$ sempre.
+\reflexao\ A razão $Q9/V_{\text{infl}}$ variou entre cenários? O que ela
+revela sobre a ``qualidade'' da nuvem para uma explosão?
+\end{tarefa}
+
+\begin{tarefa}{OpenFOAM: jato numa caixa congestionada}
+\enunciado Monte um caso 3D: caixa de 20 m $\times$ 10 m $\times$ 8 m,
+aberta em duas faces, com cilindros representando tubulações, vento na
+face aberta e um jato de metano a partir da pseudo-fonte do Módulo 7. Use um
+solver de mistura com densidade variável e empuxo (consulte, na sua versão
+do OpenFOAM, a família de solvers ``\texttt{buoyant}'' / ``\texttt{reacting}''
+sem reações). Rode até regime permanente.
+\entregaveis\ Isossuperfícies de LFL e $\frac12$LFL; histórico de $V_{\text{infl}}$
+e Q9 como critério de convergência; estudo com duas malhas.
+\criterio Q9 estabilizado (variação $<2\%$ nas últimas iterações) e diferença
+entre malhas documentada.
+\reflexao\ Compare a extensão da nuvem com a gaussiana para a mesma vazão.
+Em que sentido os obstáculos aumentaram ou reduziram o perigo?
+\end{tarefa}
+
+\begin{professor}
+O Q9 é uma das ideias mais úteis e mais mal-usadas da área. Útil porque
+resume uma nuvem complexa num número que se conecta a explosões. Mal-usado
+porque esconde hipóteses fortes: nuvem ``congelada'', homogeneidade
+equivalente, ignição no pior momento. Use, mas saiba listar cada hipótese em
+voz alta.
+\end{professor}
+
+\begin{critico}
+\begin{itemize}
+  \item Simular dispersão em regime permanente e depois somar uma ignição
+        ``no pior instante'' é conservador? Quando não é?
+  \item Hidrogênio é muito leve e muito reativo. Como isso muda a física do
+        Q9 e dos limites de inflamabilidade?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+jato flutuante / \emph{buoyant jet}; número de Froude densimétrico; gás
+denso / \emph{dense gas, heavy gas}; corrente de gravidade / \emph{gravity
+current}; número de Richardson; LFL/UFL / \emph{lower/upper flammability
+limit}; regra de Le Chatelier; volume inflamável / \emph{flammable volume};
+nuvem estequiométrica equivalente / \emph{equivalent stoichiometric cloud,
+ESC, Q9}; flutuação de concentração / \emph{concentration fluctuation}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Britter, R. E.; McQuaid, J. \emph{Workbook on the Dispersion of Dense Gases}. HSE Contract Research Report 17/1988.
+  \item Chen, C. J.; Rodi, W. \emph{Vertical Turbulent Buoyant Jets: A Review of Experimental Data}. Pergamon, 1980.
+  \item Hansen, O. R.; Gavelli, F.; Davis, S. G.; Middha, P. Equivalent cloud methods used for explosion risk and consequence studies. \emph{J. Loss Prev. Process Ind.}, 26:511--527, 2013.
+  \item Benjamin, T. B. Gravity currents and related phenomena. \emph{J. Fluid Mech.}, 31:209--248, 1968.
+  \item CCPS. \emph{Guidelines for Vapor Cloud Explosion, Pressure Vessel Burst, BLEVE, and Flash Fire Hazards}. 2.\,ed. AIChE/Wiley, 2010.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{CCPS.} \emph{Guidelines for Use of Vapor Cloud Dispersion Models}. 2.\,ed. AIChE, 1996. Visão de conjunto de modelos e experimentos.
+  \item \textbf{Simpson, J. E.} \emph{Gravity Currents in the Environment and the Laboratory}. 2.\,ed. Cambridge, 1997. Fotografias e física de correntes de gravidade.
+  \item \textbf{Fischer, H. B. et al.} \emph{Mixing in Inland and Coastal Waters}. Academic Press, 1979, cap.\ 9: a melhor dedução de leis de jatos e plumas por análise dimensional.
+  \item \textbf{Hansen et al.\ (2013)}: indispensável antes de usar Q9 em um estudo real.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Detecção de gás e otimização de posicionamento}
+
+\objetivos
+\begin{itemize}
+  \item Conhecer tipos de detectores e critérios de desempenho.
+  \item Distinguir cobertura geográfica e cobertura por cenários.
+  \item Formular o posicionamento como problema de otimização.
+  \item Avaliar robustez da solução a incertezas de cenário.
+\end{itemize}
+
+\begin{conceito}{Detectores e votação}
+\begin{itemize}
+  \item \textbf{Pontuais} (catalíticos, infravermelho): medem \%LFL num ponto.
+  \item \textbf{Caminho aberto} (\emph{open-path}): integram concentração ao
+        longo de um feixe (LFL$\cdot$m) --- natural de calcular em CFD como
+        integral de linha.
+  \item \textbf{Votação}: 1oo$N$ (alarme), 2oo$N$ (ação executiva, ex.: ESD),
+        reduz alarmes espúrios mas exige que a nuvem alcance dois detectores.
+\end{itemize}
+\end{conceito}
+
+\begin{conceito}{Cobertura geográfica vs. cobertura por cenários}
+A ISA TR84.00.07 descreve abordagens baseadas em desempenho:
+\begin{itemize}
+  \item \textbf{Geográfica}: fração da área/volume em que uma nuvem de
+        tamanho-alvo seria detectada (ex.: critérios de nuvem esférica de
+        diâmetro prescrito usados em algumas práticas).
+  \item \textbf{Por cenários}: fração (ponderada por frequência) de cenários
+        de dispersão simulados que seriam detectados, e em quanto tempo.
+\end{itemize}
+O segundo é o que o CFD viabiliza --- e o que exige mais cenários.
+\end{conceito}
+
+\begin{conceito}{Formulação de otimização}
+Seja $a_{ij}=1$ se o detector candidato $j$ ``vê'' o cenário $i$ (concentração
+acima do limiar), $f_i$ a frequência do cenário. Máxima cobertura com $K$
+detectores e votação 1oo$N$:
+\begin{gather*}
+  \max\ \sum_i f_i z_i\\
+  \text{sujeito a}\quad z_i\le\sum_j a_{ij}x_j,\qquad \sum_j x_j\le K,\\
+  x_j,\,z_i\in\{0,1\}.
+\end{gather*}
+Para 2oo$N$: $2z_i\le\sum_j a_{ij}x_j$. Métodos: guloso (rápido, garantia
+de aproximação para cobertura submodular), MILP exato, metaheurísticas
+(algoritmos genéticos) para objetivos não lineares (ex.: tempo de detecção).
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: cobertura máxima]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $i$ --- cenários; $j$ --- posições candidatas a detector.
+  \item $x_j\in\{0,1\}$ --- instalo (1) ou não (0) um detector em $j$.
+  \item $z_i\in\{0,1\}$ --- cenário $i$ detectado.
+  \item $a_{ij}$ --- matriz de visibilidade, calculada dos campos de CFD.
+  \item $K$ --- orçamento de detectores; $f_i$ --- frequência do cenário.
+\end{itemize}
+\origem Problema de localização de máxima cobertura de Church \& ReVelle
+(1974), criado para localizar serviços de emergência. A garantia do guloso
+(atinge pelo menos $1-1/e\approx63\%$ do ótimo) é de Nemhauser, Wolsey \&
+Fisher (1978).
+\end{dicionario}
+
+
+\begin{tarefa}{Otimizador de detectores}
+\enunciado Gere um conjunto de ao menos 48 cenários (ex.: 8 direções de
+vento $\times$ 3 furos $\times$ 2 orientações), usando seu modelo
+gaussiano/jato ou campos do OpenFOAM. Defina uma grade de posições candidatas.
+Resolva a máxima cobertura para $K=2,\ldots,12$ com (a) algoritmo guloso e
+(b) MILP (JuMP + HiGHS), para 1oo$N$ e 2oo$N$.
+\entregaveis\ Curva cobertura $\times$ $K$ para os quatro casos; mapa com
+posições ótimas; comparação de tempo de CPU guloso vs. MILP.
+\criterio o MILP nunca é pior que o guloso; diferença documentada.
+\reflexao\ Onde a curva de cobertura ``satura''? Que argumento de custo-benefício
+você apresentaria a um gerente de projeto?
+\end{tarefa}
+
+\begin{tarefa}{Robustez: o otimizador superajustado}
+\enunciado Otimize com metade dos cenários (ex.: só direções de vento
+pares) e avalie a cobertura na outra metade. Depois perturbe cada direção
+de vento em $\pm15^\circ$ e reavalie.
+\entregaveis\ Tabela de cobertura ``treino'' vs. ``teste''; proposta de
+formulação robusta (ex.: maximizar a cobertura do pior subconjunto, ou
+exigir redundância).
+\criterio você quantifica a perda de cobertura fora da amostra.
+\reflexao\ Este é o mesmo fenômeno de \emph{overfitting} de aprendizado de
+máquina. Que práticas de ML (validação cruzada, regularização) têm análogo
+aqui?
+\end{tarefa}
+
+\begin{critico}
+\begin{itemize}
+  \item Detectores posicionados para nuvens de regime permanente detectam
+        a nuvem \emph{a tempo} de evitar a ignição? Como incluir tempo no
+        problema?
+  \item Um layout ótimo para o projeto continua ótimo depois de dez anos de
+        modificações na planta? Que governança isso exige?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+detector pontual / \emph{point gas detector}; detector de caminho aberto /
+\emph{open-path gas detector, OPGD}; votação / \emph{voting, MooN};
+cobertura geográfica / \emph{geographic coverage}; cobertura por cenários /
+\emph{scenario coverage}; problema de máxima cobertura / \emph{maximal
+covering problem}; programação linear inteira mista / \emph{MILP}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item ISA. \emph{ISA-TR84.00.07: Guidance on the Evaluation of Fire, Combustible Gas, and Toxic Gas System Effectiveness}. 2010 (e revisões).
+  \item Church, R.; ReVelle, C. The maximal covering location problem. \emph{Papers Reg. Sci. Assoc.}, 32:101--118, 1974.
+  \item Legg, S. W.; Benavides-Serrano, A. J.; Siirola, J. D.; Watson, J.-P.; Davis, S. G.; Bratteteig, A.; Laird, C. D. A stochastic programming approach for gas detector placement using CFD-based dispersion simulations. \emph{Comput. Chem. Eng.}, 47:194--201, 2012.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{ISA-TR84.00.07}: leia por inteiro; é curto e define o vocabulário da área.
+  \item \textbf{Williams, H. P.} \emph{Model Building in Mathematical Programming}. 5.\,ed. Wiley, 2013. Como formular problemas como MILP corretamente.
+  \item \textbf{Documentação do JuMP.jl} (\url{https://jump.dev}): tutoriais de cobertura e localização de instalações.
+  \item \textbf{Legg et al.\ (2012)}: a formulação estocástica com cenários de CFD que inspirou a Tarefa 9.1.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\part{Combustão e incêndios}
+% ======================================================================
+
+\chapter{Fundamentos de combustão para segurança}
+
+\objetivos
+\begin{itemize}
+  \item Calcular estequiometria, temperatura adiabática e velocidade de chama.
+  \item Situar chamas industriais no diagrama de regimes de combustão turbulenta.
+  \item Conhecer os principais modelos de combustão turbulenta em CFD.
+  \item Usar correlações de velocidade turbulenta de queima.
+\end{itemize}
+
+\begin{conceito}{Estequiometria e propriedades de chama laminar}
+Razão de equivalência $\phi=(F/A)/(F/A)_{\text{esteq}}$. Para metano,
+CH$_4$ + 2(O$_2$+3,76N$_2$): $9{,}5\%$vol estequiométrico.
+\begin{itemize}
+  \item \textbf{Temperatura adiabática} $T_{ad}$: $\sim2200$ K para HC-ar estequiométrico.
+  \item \textbf{Velocidade laminar} $S_L$: metano $\approx0{,}37$--$0{,}40$ m/s;
+        propano $\approx0{,}43$--$0{,}46$ m/s; hidrogênio $>2$ m/s (máximo em mistura rica).
+  \item \textbf{Razão de expansão} $E=\rho_u/\rho_b\approx7$--$8$.
+        A velocidade da chama vista por um observador fixo é $\sim E\cdot S_L$
+        --- é essa expansão que ``empurra'' o gás e gera sobrepressão.
+  \item Espessura de chama $\delta_L\approx\alpha/S_L$ (décimos de mm);
+        número de Lewis $Le=\alpha/D$ governa instabilidades
+        (hidrogênio pobre: $Le<1$, chamas celulares e aceleração).
+\end{itemize}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: chama laminar]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\phi$ --- razão de equivalência: $<1$ pobre, $>1$ rica.
+  \item $F/A$ --- razão combustível/ar (mássica ou molar).
+  \item $\rho_u,\rho_b$ --- densidades do gás não queimado e queimado.
+  \item $\delta_L$ --- espessura da chama [m]; $\alpha$ --- difusividade
+        térmica; $D$ --- difusividade mássica do reagente limitante.
+  \item $Le=\alpha/D$ --- número de Lewis.
+\end{itemize}
+\origem Mallard \& Le Chatelier (1883) propuseram a teoria térmica da chama:
+$S_L\sim\sqrt{\alpha/\tau_{\text{reação}}}$. Zeldovich \& Frank-Kamenetskii
+(1938) a tornaram quantitativa. O número de Lewis homenageia Warren K. Lewis
+(MIT, 1922), um dos fundadores da engenharia química.
+\end{dicionario}
+
+
+\begin{conceito}{Combustão turbulenta: regimes e números adimensionais}
+\[
+  Da=\frac{\tau_t}{\tau_c}=\frac{\ell/u'}{\delta_L/S_L},\qquad
+  Ka=\left(\frac{\delta_L}{\eta}\right)^2 .
+\]
+O diagrama de Borghi--Peters ($u'/S_L$ vs. $\ell/\delta_L$) separa regimes:
+chamas enrugadas, corrugadas, zonas de reação finas, reator homogêneo.
+Em explosões em módulos congestionados, $u'/S_L$ cresce muito na esteira
+dos obstáculos --- daí a aceleração da chama.
+
+\textbf{Velocidade turbulenta de queima}, exemplos de correlações:
+\begin{gather*}
+  \text{Gülder (1990):}\quad\frac{S_T}{S_L}=1+0{,}62\left(\frac{u'}{S_L}\right)^{1/2}Re_\ell^{1/4}\\
+  \text{Zimont:}\quad S_T = A\,u'^{3/4}S_L^{1/2}\alpha^{-1/4}\ell^{1/4}
+\end{gather*}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: combustão turbulenta]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\tau_t=\ell/u'$ --- tempo de giro dos turbilhões grandes [s].
+  \item $\tau_c=\delta_L/S_L$ --- tempo químico da chama laminar [s].
+  \item $Da$ --- turbulência/química. $Da\gg1$: chama fina, enrugada.
+  \item $Ka$ --- química/menores turbilhões. $Ka>1$: turbilhões entram na
+        zona de preaquecimento.
+  \item $S_T$ --- velocidade turbulenta de queima [m/s]; $\alpha$ ---
+        difusividade térmica [m$^2$/s]; $A\approx0{,}5$ (Zimont).
+\end{itemize}
+\origem Gerhard Damköhler (1940) fez a primeira teoria de chama turbulenta;
+Béla Karlovitz (1953) estudou o estiramento da chama; o diagrama de regimes é
+de Borghi (1985) e Peters (1986, 2000). Vladimir Zimont (1979) derivou a
+correlação para chamas ``espessadas''.
+\end{dicionario}
+
+
+\begin{conceito}{Modelos de combustão em CFD}
+\begin{itemize}
+  \item \textbf{Pré-misturada} (explosões): variável de progresso $c$ com
+        fechamento por $S_T$ (Zimont/TFC), densidade de superfície de chama,
+        modelo de enrugamento de Weller (\texttt{XiFoam}), equação $G$.
+  \item \textbf{Não pré-misturada} (incêndios): fração de mistura $Z$,
+        chama de Burke--Schumann, \emph{flamelets}.
+  \item \textbf{Genéricos}: \emph{Eddy Dissipation Model} (Magnussen \&
+        Hjertager, 1977) --- taxa limitada pela mistura, $\dot\omega\propto
+        \bar\rho\,\frac{\varepsilon}{k}\min(Y_F, Y_O/s)$; EDC; usados em
+        incêndios em RANS e no FDS (variante de mistura rápida).
+\end{itemize}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: modelos de combustão]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $Y_F,Y_O$ --- frações mássicas de combustível e oxidante.
+  \item $s$ --- massa de oxigênio por massa de combustível (estequiométrica).
+  \item $\varepsilon/k$ --- inverso do tempo de mistura turbulenta: a reação
+        é tão rápida que quem manda é a mistura.
+  \item $Z$ --- fração de mistura: fração da massa local que veio do
+        combustível; conservada (não reage), por isso fácil de transportar.
+  \item $c$ --- variável de progresso (0 não queimado, 1 queimado).
+\end{itemize}
+\origem Burke \& Schumann (1928) introduziram a ``chama de folha fina''.
+Brian Spalding propôs o \emph{eddy break-up} (1971), refinado por
+Magnussen \& Hjertager (1977). Bray, Moss \& Libby (anos 1970--80) formalizaram
+a variável de progresso; Henry Weller (anos 1990), o modelo de enrugamento
+implementado no OpenFOAM.
+\end{dicionario}
+
+
+\begin{tarefa}{Propriedades de chama com Cantera}
+\enunciado Usando Cantera (Python, ou chamado a partir de Julia) com o
+mecanismo GRI-Mech 3.0: (a) calcule $T_{ad}(\phi)$ e $E(\phi)$ para metano,
+propano e uma composição típica de gás de processo (ex.: 85\% CH$_4$, 8\%
+C$_2$H$_6$, 4\% C$_3$H$_8$, 3\% CO$_2$); (b) calcule $S_L(\phi)$ com chama
+livre 1D; (c) compare o LFL da mistura pela regra de Le Chatelier com o
+ponto onde $S_L$ cai abruptamente; (d) tabele $S_L E$ normalizado ---
+o fator de ponderação do Q9 (Módulo 8).
+\entregaveis\ Curvas $T_{ad}$, $S_L$, $E$ e $S_L E$ versus $\phi$ e versus
+\%vol; tabela exportada para o pós-processador do Módulo 8.
+\criterio $S_L$ do metano estequiométrico dentro da faixa experimental.
+\reflexao\ A cinética detalhada prevê chama ``morrendo'' perto do LFL de
+forma suave ou abrupta? Como a escolha do mecanismo pode afetar Q9?
+\end{tarefa}
+
+\begin{tarefa}{Onde vivem as chamas industriais}
+\enunciado Desenhe o diagrama de Borghi--Peters e posicione: (i) uma chama
+de metano num módulo vazio com $u'=0{,}5$ m/s, $\ell=1$ m; (ii) a mesma chama
+na esteira de um rack de tubos com $u'=10$ m/s, $\ell=0{,}1$ m; (iii) um
+incêndio em poça de 10 m. Calcule $S_T$ com duas correlações para (i) e (ii).
+\entregaveis\ Diagrama anotado; tabela de $Da$, $Ka$, $S_T$.
+\criterio pontos corretamente posicionados, com contas reproduzíveis.
+\reflexao\ As correlações de $S_T$ concordam entre si? Que fração da
+incerteza de uma simulação de explosão você atribuiria a essa escolha?
+\end{tarefa}
+
+\begin{critico}
+\begin{itemize}
+  \item Se $S_T$ depende de $u'$ e a chama gera $u'$ ao empurrar gás pelos
+        obstáculos, que tipo de comportamento dinâmico esperar? (Revisite no
+        Módulo 13.)
+  \item Por que modelos ``limitados pela mistura'' funcionam razoavelmente
+        para incêndios e mal para explosões?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+razão de equivalência / \emph{equivalence ratio}; temperatura adiabática de
+chama / \emph{adiabatic flame temperature}; velocidade laminar de queima /
+\emph{laminar burning velocity}; razão de expansão / \emph{expansion ratio};
+número de Damköhler, número de Karlovitz; diagrama de regimes /
+\emph{regime diagram}; velocidade turbulenta de queima / \emph{turbulent
+burning velocity}; fração de mistura / \emph{mixture fraction}; EDM, EDC;
+\emph{flamelet}; variável de progresso / \emph{progress variable}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Turns, S. R. \emph{An Introduction to Combustion}. 3.\,ed. McGraw-Hill, 2012.
+  \item Poinsot, T.; Veynante, D. \emph{Theoretical and Numerical Combustion}. 3.\,ed. Edwards, 2012.
+  \item Peters, N. \emph{Turbulent Combustion}. Cambridge University Press, 2000.
+  \item Magnussen, B. F.; Hjertager, B. H. On mathematical modeling of turbulent combustion with special emphasis on soot formation and combustion. \emph{Proc. Combust. Inst.}, 16:719--729, 1977.
+  \item Gülder, Ö. L. Turbulent premixed flame propagation models for different combustion regimes. \emph{Proc. Combust. Inst.}, 23:743--750, 1990.
+  \item Goodwin, D. G. et al. \emph{Cantera: An object-oriented software toolkit for chemical kinetics, thermodynamics, and transport processes}. \url{https://www.cantera.org}.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Law, C. K.} \emph{Combustion Physics}. Cambridge, 2006. O tratamento mais completo de chamas laminares, estiramento e limites de inflamabilidade.
+  \item \textbf{Glassman, I.; Yetter, R. A.; Glumac, N. G.} \emph{Combustion}. 5.\,ed. Academic Press, 2014. Clássico, com bons capítulos sobre detonação e limites.
+  \item \textbf{Lewis, B.; von Elbe, G.} \emph{Combustion, Flames and Explosions of Gases}. 3.\,ed. Academic Press, 1987. Fonte histórica rica em dados experimentais.
+  \item \textbf{Tutoriais do Cantera} (\url{https://www.cantera.org}): chama livre, equilíbrio e reatores.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Incêndios: jato de fogo, poça e radiação}
+
+\objetivos
+\begin{itemize}
+  \item Classificar incêndios de processo e seus fluxos térmicos típicos.
+  \item Implementar o modelo de chama sólida com fator de forma.
+  \item Entender a equação de transferência radiativa e seus modelos numéricos.
+  \item Executar um incêndio em LES (FDS) com critério de resolução.
+\end{itemize}
+
+\begin{conceito}{Tipos de incêndio e efeitos}
+\begin{itemize}
+  \item \textbf{Jato de fogo} (\emph{jet fire}): ignição imediata de vazamento
+        pressurizado; alto momento, fluxos de calor muito elevados no
+        engolfamento (ordem de grandeza frequentemente citada: 200--350 kW/m$^2$),
+        erosivo. Dimensiona proteção passiva (classes J/H).
+  \item \textbf{Incêndio em poça} (\emph{pool fire}): queima de líquido
+        acumulado; dominado por empuxo; fumaça e fuligem reduzem o poder
+        emissivo em diâmetros grandes.
+  \item \textbf{\emph{Flash fire}}: queima de nuvem sem sobrepressão
+        significativa; efeito letal restrito ao interior da nuvem.
+  \item \textbf{BLEVE / bola de fogo}: liberação súbita de líquido
+        superaquecido.
+\end{itemize}
+Limiares usuais de radiação (verifique na norma do seu projeto): $\sim1{,}6$
+kW/m$^2$ (exposição prolongada), $\sim5$ kW/m$^2$ (rotas de fuga, exposição
+curta), $\sim12{,}5$ kW/m$^2$ (ignição de madeira, dano), $\sim37{,}5$ kW/m$^2$
+(dano a equipamentos).
+\end{conceito}
+
+\begin{conceito}{Incêndio em poça: correlações e chama sólida}
+\begin{itemize}
+  \item Taxa de queima (Babrauskas): $\dot m''=\dot m''_\infty(1-e^{-k\beta D})$.
+  \item Altura de chama (Thomas, 1963):
+        $\frac{L}{D}=42\left(\frac{\dot m''}{\rho_a\sqrt{gD}}\right)^{0{,}61}$;
+        (Heskestad): $L=0{,}235\,\dot Q^{2/5}-1{,}02\,D$ ($\dot Q$ em kW, $L$ e $D$ em m).
+  \item Poder emissivo de superfície (SEP) decrescente com $D$ pela fumaça,
+        ex. Mudan (1984):
+        \[SEP=140\,e^{-0{,}12D}+20\,(1-e^{-0{,}12D})\ \ \text{[kW/m}^2\text{]}.\]
+\end{itemize}
+\textbf{Modelo de chama sólida}: a chama é um cilindro (inclinado pelo vento)
+que irradia uniformemente; o fluxo no alvo é
+\[
+  q''=SEP\cdot F_{12}\cdot\tau_{\text{atm}},
+\]
+com $F_{12}$ o fator de forma geométrico e $\tau_{\text{atm}}$ a
+transmissividade atmosférica (absorção por H$_2$O e CO$_2$).
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: incêndio em poça]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\dot m''$ --- taxa de queima por área [kg/(m$^2\cdot$s)];
+        $\dot m''_\infty$ --- valor para poça muito grande.
+  \item $k\beta$ --- coeficiente de extinção $\times$ fator de feixe [1/m]:
+        quão rápido a chama fica opticamente espessa com o diâmetro.
+  \item $\dot Q=\dot m''\,\Delta H_c\,A_{\text{poça}}$ --- taxa de liberação de calor [kW].
+  \item $SEP$ --- poder emissivo da superfície da chama [kW/m$^2$].
+  \item $F_{12}$ --- fator de forma: fração da radiação que sai da chama e
+        atinge o alvo,
+        \[
+          F_{12}=\frac{1}{A_1}\int_{A_1}\!\int_{A_2}\frac{\cos\theta_1\cos\theta_2}{\pi S^2}\,dA_2\,dA_1 .
+        \]
+  \item $\tau_{\text{atm}}$ --- fração não absorvida pelo ar úmido.
+\end{itemize}
+\origem Blinov \& Khudyakov (1957) e Burgess et al.\ (1961) mediram taxas de
+queima; Babrauskas (1983) consolidou a correlação. Philip Thomas (1963)
+derivou a altura de chama de experimentos com pilhas de madeira; Gunnar
+Heskestad (1983), da teoria de plumas. O fator de forma deriva da lei do
+cosseno de Lambert (1760); Hottel o sistematizou para engenharia (anos 1930--50).
+\end{dicionario}
+
+
+\begin{conceito}{Equação de transferência radiativa (RTE)}
+Para meio absorvente-emissor, não espalhador, cinza:
+\[
+  \frac{dI(\mathbf r,\hat{\mathbf s})}{ds}=\kappa\left[I_b(T)-I\right],\qquad
+  I_b=\frac{\sigma T^4}{\pi}.
+\]
+Modelos: \textbf{P1} (difusão da radiação, barato, ruim em meio opticamente
+fino), \textbf{DOM/FVM} (ordenadas discretas; FDS, Fluent, OpenFOAM
+\texttt{fvDOM}), \textbf{DTM} (transferência discreta, usado em códigos de
+incêndio offshore). Propriedades: gás cinza, WSGG (soma ponderada de gases
+cinzas), contribuição da fuligem (frequentemente dominante em chamas de HC).
+Espessura óptica $\tau=\kappa L$ decide o regime.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: radiação]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $I$ --- intensidade radiante [W/(m$^2\cdot$sr)] na direção $\hat{\mathbf s}$.
+  \item $\kappa$ --- coeficiente de absorção [1/m]; $\tau=\kappa L$ ---
+        espessura óptica ($\ll1$ transparente, $\gg1$ opaco).
+  \item $I_b$ --- intensidade de corpo negro; $\sigma=5{,}67\times10^{-8}$
+        W/(m$^2\cdot$K$^4$).
+  \item $G=\int_{4\pi}I\,d\Omega$ --- radiação incidente [W/m$^2$]. No P1:
+        $\nabla\cdot\left(\frac{1}{3\kappa}\nabla G\right)=\kappa\,(G-4\sigma T^4)$.
+\end{itemize}
+\origem Stefan (1879, experimental) e Boltzmann (1884, teórico) deram a lei
+$\sigma T^4$; Kirchhoff (1859), a igualdade entre emissão e absorção; Planck
+(1900), o espectro do corpo negro. A RTE moderna está em Chandrasekhar
+(\emph{Radiative Transfer}, 1950). O método de transferência discreta é de
+Lockwood \& Shah (1981); WSGG, de Hottel \& Sarofim (1967).
+\end{dicionario}
+
+
+\begin{conceito}{LES de incêndio e critério $D^*/\delta x$}
+O FDS resolve as equações de baixo Mach com LES e combustão de mistura
+rápida. A resolução é avaliada pelo diâmetro característico de fogo
+\[
+  D^*=\left(\frac{\dot Q}{\rho_\infty c_p T_\infty\sqrt g}\right)^{2/5},
+\]
+e recomenda-se $D^*/\delta x$ entre 4 (grosso) e 16 (fino), conforme os
+estudos de V\&V do NIST/US NRC.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: $D^*$]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\dot Q$ --- potência do fogo [kW]; $\rho_\infty,c_p,T_\infty$ ---
+        propriedades do ar ambiente.
+  \item $D^*$ [m] --- escala de comprimento natural de uma pluma de fogo.
+  \item $\delta x$ --- tamanho da célula; $D^*/\delta x$ --- ``quantas
+        células cabem no fogo''.
+\end{itemize}
+\textbf{Como se deriva:} análise dimensional da pluma de empuxo: com $\dot Q$,
+$g$ e propriedades do ar, a única escala de comprimento é $D^*$ (expoente
+$2/5$, o mesmo da correlação de Heskestad).
+\origem Teoria de plumas de Morton, Taylor \& Turner (1956) e Zukoski;
+critério de resolução consolidado nos relatórios NUREG-1824 (US NRC/EPRI, 2007).
+\end{dicionario}
+
+
+\begin{tarefa}{Calculadora de incêndio em poça}
+\enunciado Para uma poça de condensado de 8 m de diâmetro ($\dot m''_\infty$
+e $k\beta$ da literatura para hidrocarbonetos leves), calcule $\dot m''$,
+$\dot Q$, $L$ (Thomas e Heskestad), $SEP$ (Mudan) e o fluxo radiante a
+distâncias de 5 a 60 m, por (i) modelo de fonte pontual
+($q''=\chi_r\dot Q\tau/4\pi R^2$) e (ii) chama sólida cilíndrica vertical,
+com fator de forma calculado por integração numérica (não use tabela!).
+\entregaveis\ Código; gráfico $q''(R)$ dos dois modelos com linhas dos
+limiares; tabela de distâncias para 5, 12,5 e 37,5 kW/m$^2$.
+\criterio fator de forma numérico validado contra um caso com solução
+fechada (ex.: disco paralelo a um elemento).
+\reflexao\ Onde os modelos de fonte pontual e chama sólida divergem, e por
+quê? Para posicionar uma rota de fuga a 15 m, qual você usaria?
+\end{tarefa}
+
+\begin{tarefa}{RTE 1D: da analítica ao P1}
+\enunciado Resolva a RTE numa camada plana de gás isotérmico a $T_g$, entre
+paredes negras frias, para espessuras ópticas $\tau\in\{0{,}1;\,1;\,10\}$.
+Use (a) solução analítica com integrais exponenciais, (b) ordenadas discretas
+com $S_4$ e $S_8$, (c) aproximação P1.
+\entregaveis\ Fluxo na parede vs. $\tau$ para os três métodos; erro relativo.
+\criterio DOM converge para a analítica com o refinamento angular.
+\reflexao\ Em que regime o P1 falha, e por que isso importa para chamas de
+jato longas e finas vistas de longe?
+\end{tarefa}
+
+\begin{tarefa}{FDS: incêndio em poça com estudo de malha}
+\enunciado Monte no FDS uma poça de 2 m com HRR prescrito pela taxa de
+queima de um hidrocarboneto. Rode com $D^*/\delta x=4$, 8 e 16. Coloque
+medidores de fluxo radiante a 5, 10 e 20 m.
+\entregaveis\ Altura média de chama (a partir do HRR por unidade de altura)
+vs. Heskestad; fluxos radiantes vs. sua calculadora; custo computacional de
+cada malha.
+\criterio altura de chama dentro de $\pm20\%$ de Heskestad na malha média ou fina.
+\reflexao\ O resultado de radiação a 20 m mudou com a malha? E o campo
+próximo? O que isso ensina sobre onde investir resolução?
+\end{tarefa}
+
+\begin{professor}
+Nos meus anos de sala de aula, a pergunta mais reveladora sobre incêndio é:
+``qual a fração radiante?''. Quem responde ``0,3'' sem pestanejar ainda não
+entendeu que esse número depende de combustível, diâmetro, fuligem e do
+próprio modelo. Em CFD de incêndio, a radiação é frequentemente a maior
+fonte de erro --- e a menos discutida nos relatórios.
+\end{professor}
+
+\begin{critico}
+\begin{itemize}
+  \item Um jato de fogo atingindo uma estrutura: o fluxo de calor incidente
+        é o que importa, ou a temperatura da superfície? Como o CFD
+        acoplado com condução na estrutura muda a resposta?
+  \item O vento inclina a chama e aumenta a radiação a jusante. Seu
+        estudo de incêndio considerou todas as direções da rosa dos ventos?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+jato de fogo / \emph{jet fire}; incêndio em poça / \emph{pool fire};
+poder emissivo de superfície / \emph{surface emissive power, SEP}; fator de
+forma / \emph{view factor}; transmissividade atmosférica / \emph{atmospheric
+transmissivity}; fração radiante / \emph{radiative fraction}; equação de
+transferência radiativa / \emph{radiative transfer equation, RTE}; ordenadas
+discretas / \emph{discrete ordinates}; fuligem / \emph{soot}; taxa de liberação
+de calor / \emph{heat release rate, HRR}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Drysdale, D. \emph{An Introduction to Fire Dynamics}. 3.\,ed. Wiley, 2011.
+  \item Hurley, M. J. (ed.). \emph{SFPE Handbook of Fire Protection Engineering}. 5.\,ed. Springer, 2016.
+  \item Modest, M. F. \emph{Radiative Heat Transfer}. 3.\,ed. Academic Press, 2013.
+  \item Mudan, K. S. Thermal radiation hazards from hydrocarbon pool fires. \emph{Prog. Energy Combust. Sci.}, 10:59--80, 1984.
+  \item Shokri, M.; Beyler, C. L. Radiation from large pool fires. \emph{J. Fire Prot. Eng.}, 1:141--150, 1989.
+  \item Chamberlain, G. A. Developments in design methods for predicting thermal radiation from flares. \emph{Chem. Eng. Res. Des.}, 65:299--309, 1987.
+  \item McGrattan, K. et al. \emph{Fire Dynamics Simulator: Technical Reference Guide} e \emph{User's Guide}. NIST Special Publication 1018/1019 (versão vigente).
+  \item API. \emph{API Standard 521: Pressure-relieving and Depressuring Systems}. (Limiares de radiação.)
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Quintiere, J. G.} \emph{Fundamentals of Fire Phenomena}. Wiley, 2006. Plumas, chamas e escalonamento com abordagem de engenheiro.
+  \item \textbf{Howell, J. R.; Mengüç, M. P.; Siegel, R.} \emph{Thermal Radiation Heat Transfer}. 6.\,ed. CRC, 2015. O catálogo de fatores de forma e a teoria da RTE.
+  \item \textbf{NUREG-1824} (US NRC/EPRI, 2007 e suplementos): verificação e validação de modelos de incêndio, incluindo FDS; leia para aprender a criticar resultados de fogo.
+  \item \textbf{FDS User's Guide}: cap.\ sobre resolução de malha e o critério $D^*/\delta x$.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\part{Explosões}
+% ======================================================================
+
+\chapter{Explosões: fenomenologia e métodos empíricos}
+
+\objetivos
+\begin{itemize}
+  \item Distinguir deflagração e detonação e entender o mecanismo de
+        realimentação por obstáculos.
+  \item Descrever ondas de explosão: sobrepressão, impulso, duração.
+  \item Aplicar os métodos TNT, Multi-Energia e Baker--Strehlow--Tang.
+  \item Resolver as equações de Euler 1D com um esquema de Godunov.
+\end{itemize}
+
+\begin{conceito}{Deflagração, detonação e realimentação}
+\begin{itemize}
+  \item \textbf{Deflagração}: chama subsônica, propagação por difusão de
+        calor e radicais; sobrepressão cresce com a velocidade da chama.
+  \item \textbf{Detonação}: onda de choque acoplada à reação, supersônica
+        (velocidade de Chapman--Jouguet, $\sim1800$ m/s para HC-ar),
+        sobrepressão de $\sim15$--$20$ bar.
+  \item \textbf{DDT}: transição deflagração-detonação, possível em geometrias
+        altamente congestionadas/confinadas ou com misturas muito reativas.
+\end{itemize}
+\textbf{Mecanismo de realimentação (Shchelkin)}: a expansão dos produtos
+empurra o gás não queimado através dos obstáculos $\rightarrow$ turbulência na
+esteira $\rightarrow$ $S_T$ aumenta $\rightarrow$ expansão mais rápida
+$\rightarrow$ escoamento mais rápido $\rightarrow$\ldots\ \textbf{Congestionamento}
+(densidade de obstáculos) e \textbf{confinamento} (paredes, convés, teto)
+controlam a explosão --- não a massa total de combustível.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: termos de explosão]
+\begin{itemize}[leftmargin=*,nosep]
+  \item Velocidade de Chapman--Jouguet --- velocidade de detonação estável,
+        em que os produtos saem a Mach 1 relativo à frente.
+  \item Congestionamento --- obstáculos \emph{dentro} da nuvem (tubos,
+        vasos), medido por razão de bloqueio e densidade de obstáculos.
+  \item Confinamento --- superfícies que impedem a expansão (convés, paredes).
+\end{itemize}
+\origem David Chapman (1899) e Émile Jouguet (1905) criaram a teoria de
+detonação; Kirill Shchelkin (anos 1940) mostrou, com espirais em tubos, que
+obstáculos aceleram chamas até a detonação.
+\end{dicionario}
+
+
+\begin{conceito}{Ondas de explosão e escalonamento de Sachs}
+Parâmetros: sobrepressão de pico $\Delta P$, duração da fase positiva $t_+$,
+impulso $i=\int_0^{t_+}\Delta P\,dt$. Escalonamento de Sachs:
+\begin{gather*}
+  \bar R=\frac{R}{(E/p_0)^{1/3}},\qquad
+  \overline{\Delta P}=\frac{\Delta P}{p_0},\\
+  \bar t=\frac{t\,c_0}{(E/p_0)^{1/3}},\qquad
+  \bar\imath=\frac{i\,c_0}{p_0^{2/3}E^{1/3}} .
+\end{gather*}
+A resposta estrutural depende da razão entre $t_+$ e o período natural da
+estrutura: regime impulsivo, dinâmico ou quase-estático.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: escalonamento]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $R$ --- distância ao centro da explosão [m].
+  \item $E$ --- energia de combustão que contribui para a onda [J].
+  \item $p_0$, $c_0$ --- pressão e velocidade do som ambientes.
+  \item $\Delta P$ --- sobrepressão de pico [Pa]; $t_+$ --- duração da fase
+        positiva [s]; $i$ --- impulso [Pa$\cdot$s].
+  \item Barras indicam grandezas adimensionais.
+\end{itemize}
+\textbf{Ideia física:} explosões geometricamente semelhantes geram ondas
+semelhantes quando a distância é medida na escala $(E/p_0)^{1/3}$ --- o raio
+de uma esfera que conteria a energia $E$ a pressão $p_0$.
+\origem Hopkinson (1915) e Cranz (1926) propuseram a lei da raiz cúbica para
+explosivos; Robert Sachs (1944, \emph{Ballistic Research Laboratory}, EUA)
+incluiu as condições ambientes.
+\end{dicionario}
+
+
+\begin{conceito}{Métodos empíricos de VCE}
+\begin{itemize}
+  \item \textbf{Equivalência TNT}: $W_{TNT}=\eta\,M\,\Delta H_c/\Delta H_{TNT}$
+        com rendimento $\eta\sim1$--$10\%$. Fisicamente inadequado para
+        deflagrações (forma de onda e campo próximo errados), ainda citado.
+  \item \textbf{Multi-Energia (TNO)}: só a parte congestionada/confinada da
+        nuvem gera explosão; energia $E\approx3{,}5$ MJ/m$^3$ $\times$ volume
+        estequiométrico da região; curvas de explosão com ``força'' de 1 a 10
+        (10 = detonação). A escolha da força é a grande incerteza (guias
+        como GAME/GAMES relacionam força com congestionamento e escala).
+  \item \textbf{Baker--Strehlow--Tang (BST)}: escolhe-se a velocidade máxima
+        de chama (número de Mach) por tabela de reatividade, confinamento e
+        congestionamento; curvas de sobrepressão e impulso correspondentes.
+\end{itemize}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: métodos empíricos]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $W_{TNT}$ --- massa equivalente de TNT [kg]; $\eta$ --- rendimento
+        (fração da energia que vira onda de choque).
+  \item $\Delta H_c$ --- calor de combustão ($\sim46$--$50$ MJ/kg para HC);
+        $\Delta H_{TNT}\approx4{,}2$--$4{,}7$ MJ/kg.
+  \item $3{,}5$ MJ/m$^3$ --- calor liberado por m$^3$ de mistura
+        estequiométrica HC-ar, quase igual para todos os hidrocarbonetos.
+  \item Força (1--10) --- índice de severidade da fonte no Multi-Energia;
+        10 corresponde a detonação.
+\end{itemize}
+\origem O TNT equivalente vem de dados militares de explosivos sólidos
+(compilações como Kingery \& Bulmash, 1984). O Multi-Energia surgiu no TNO
+(van den Berg, 1985) depois que se percebeu que nuvens em áreas abertas
+quase não geram sobrepressão. O projeto GAME (Eggen, TNO, 1998) correlacionou
+a força com congestionamento. O BST é de Baker, Strehlow e Tang (1994--99).
+\end{dicionario}
+
+
+\begin{conceito}{Equações de Euler e o problema de Riemann}
+\begin{gather*}
+  \frac{\partial\mathbf U}{\partial t}+\frac{\partial\mathbf F(\mathbf U)}{\partial x}=0,\\
+  \mathbf U=\begin{pmatrix}\rho\\ \rho u\\ \rho e_t\end{pmatrix},\quad
+  \mathbf F=\begin{pmatrix}\rho u\\ \rho u^2+p\\ u(\rho e_t+p)\end{pmatrix}.
+\end{gather*}
+Descontinuidades obedecem às condições de Rankine--Hugoniot. O método de
+Godunov resolve, em cada face, um problema de Riemann (exato ou aproximado:
+Rusanov, HLL, HLLC, Roe). Segunda ordem via reconstrução MUSCL com
+limitadores --- os mesmos do Módulo 2.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: Euler compressível]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\mathbf U$ --- vetor de variáveis conservadas; $\mathbf F$ --- fluxos.
+  \item $e_t=e+u^2/2$ --- energia total específica; para gás ideal
+        $e=p/[(\gamma-1)\rho]$.
+  \item $c=\sqrt{\gamma p/\rho}$ --- velocidade do som. As ondas viajam com
+        $u-c$, $u$ e $u+c$ (autovalores de $\partial\mathbf F/\partial\mathbf U$).
+  \item Rankine--Hugoniot: num choque com velocidade $s$,
+        $\mathbf F_R-\mathbf F_L=s\,(\mathbf U_R-\mathbf U_L)$.
+\end{itemize}
+\origem Euler (1757); Bernhard Riemann (1860) resolveu o ``problema de
+Riemann'' para gases; William Rankine (1870) e Pierre-Henri Hugoniot (1887)
+derivaram as condições de choque. Godunov (1959) transformou o problema de
+Riemann em método numérico; seguiram-se Rusanov (1961), Roe (1981), Harten,
+Lax \& van Leer (HLL, 1983) e Toro (HLLC, 1994).
+\end{dicionario}
+
+
+\begin{lstlisting}[caption={Fluxo de Rusanov (Lax--Friedrichs local) para Euler 1D}]
+const gam = 1.4
+pressao(U) = (gam-1)*(U[3] - 0.5*U[2]^2/U[1])
+fluxo(U) = (p = pressao(U); u = U[2]/U[1];
+            [U[2], U[2]*u + p, u*(U[3] + p)])
+function rusanov(UL, UR)
+    cL = sqrt(gam*pressao(UL)/UL[1]); cR = sqrt(gam*pressao(UR)/UR[1])
+    smax = max(abs(UL[2]/UL[1]) + cL, abs(UR[2]/UR[1]) + cR)
+    return 0.5*(fluxo(UL) + fluxo(UR)) .- 0.5*smax .* (UR .- UL)
+end
+\end{lstlisting}
+
+\begin{tarefa}{Tubo de choque de Sod}
+\enunciado Implemente Godunov de 1.ª ordem (Rusanov e HLL) e uma versão
+MUSCL-Hancock de 2.ª ordem. Resolva Sod: $(\rho,u,p)_L=(1;0;1)$,
+$(\rho,u,p)_R=(0{,}125;0;0{,}1)$, $\gamma=1{,}4$, até $t=0{,}2$. Implemente
+também o solver de Riemann exato (Toro, Cap. 4) para comparação.
+\entregaveis\ Perfis de $\rho$, $u$, $p$ numéricos vs. exato; identificação
+da onda de rarefação, descontinuidade de contato e choque; estudo de
+convergência na norma $L_1$.
+\criterio ordem observada próxima de 1 para ambos (soluções descontínuas
+limitam a ordem!) e erro do esquema de 2.ª ordem claramente menor.
+\reflexao\ Por que a ordem observada é $<2$ mesmo para o esquema de 2.ª
+ordem? Que consequência isso tem para o refinamento de malha em explosões?
+\end{tarefa}
+
+\begin{tarefa}{Explosão esférica e curvas empíricas}
+\enunciado (a) Adapte o solver para simetria esférica (termo fonte
+geométrico) e simule a explosão de uma esfera de gás a alta pressão; meça
+$\Delta P$ e impulso versus distância e compare, em coordenadas de Sachs,
+com uma curva de referência de explosão. (b) Para um módulo de processo com
+2000 m$^3$ congestionados preenchidos com nuvem estequiométrica, calcule
+$\Delta P(R)$ pelo TNT ($\eta=3\%$ e $10\%$) e pelo Multi-Energia com forças
+4, 7 e 10 (digitalize as curvas do Yellow Book para estudo próprio, ou use
+ajustes publicados).
+\entregaveis\ Gráficos em coordenadas de Sachs; tabela de distâncias para
+0,1, 0,3 e 1 bar por método.
+\criterio contas reproduzíveis e diferenças entre métodos discutidas.
+\reflexao\ A diferença entre força 4 e 7 é maior que a diferença entre TNT
+e Multi-Energia? O que isso diz sobre onde está a incerteza --- no método ou
+no julgamento do analista?
+\end{tarefa}
+
+\begin{critico}
+\begin{itemize}
+  \item Se a sobrepressão depende do congestionamento e não da massa total,
+        por que tantos critérios de aceitação e legislações ainda falam em
+        ``massa de inventário''?
+  \item Buncefield revelou que vegetação densa pode agir como
+        congestionamento. Que outros ``obstáculos invisíveis'' você
+        consideraria num FPSO?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+deflagração / \emph{deflagration}; detonação / \emph{detonation}; DDT;
+explosão de nuvem de vapor / \emph{vapour cloud explosion, VCE};
+congestionamento / \emph{congestion}; confinamento / \emph{confinement};
+onda de explosão / \emph{blast wave}; impulso / \emph{impulse};
+escalonamento de Sachs / \emph{Sachs scaling}; Multi-Energia / \emph{Multi-Energy
+Method}; BST; problema de Riemann / \emph{Riemann problem}; MUSCL.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Bjerketvedt, D.; Bakke, J. R.; van Wingerden, K. Gas explosion handbook. \emph{J. Hazard. Mater.}, 52:1--150, 1997.
+  \item van den Berg, A. C. The multi-energy method: a framework for vapour cloud explosion blast prediction. \emph{J. Hazard. Mater.}, 12:1--10, 1985.
+  \item Tang, M. J.; Baker, Q. A. A new set of blast curves from vapor cloud explosion. \emph{Process Saf. Prog.}, 18(4):235--240, 1999.
+  \item Toro, E. F. \emph{Riemann Solvers and Numerical Methods for Fluid Dynamics}. 3.\,ed. Springer, 2009.
+  \item Sod, G. A. A survey of several finite difference methods for systems of nonlinear hyperbolic conservation laws. \emph{J. Comput. Phys.}, 27:1--31, 1978.
+  \item CCPS. \emph{Guidelines for Vapor Cloud Explosion, Pressure Vessel Burst, BLEVE, and Flash Fire Hazards}. 2.\,ed., 2010.
+  \item Ciccarelli, G.; Dorofeev, S. Flame acceleration and transition to detonation in ducts. \emph{Prog. Energy Combust. Sci.}, 34:499--550, 2008.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Bjerketvedt, Bakke \& van Wingerden (1997)}: o ``\emph{Gas Explosion Handbook}'' é a melhor introdução escrita por quem fez os experimentos; leia inteiro.
+  \item \textbf{Eckhoff, R. K.} \emph{Explosion Hazards in the Process Industries}. 2.\,ed. Gulf, 2016. Visão ampla, incluindo poeiras e BLEVE.
+  \item \textbf{Baker, W. E. et al.} \emph{Explosion Hazards and Evaluation}. Elsevier, 1983. Clássico sobre ondas de explosão e resposta estrutural.
+  \item \textbf{Toro (2009)}, caps.\ 4 e 10: solver exato e HLL/HLLC --- os que você implementou.
+  \item \textbf{Lee, J. H. S.} \emph{The Detonation Phenomenon}. Cambridge, 2008. Para quem quiser ir a fundo em DDT.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{CFD de explosões e análise probabilística}
+
+\objetivos
+\begin{itemize}
+  \item Formular o problema de explosão como Euler/NS reativo.
+  \item Entender a abordagem de porosidade e resistência distribuída (PDR).
+  \item Simular aceleração de chama induzida por obstáculos em 1D.
+  \item Construir curvas de excedência de sobrepressão e a carga acidental de projeto.
+\end{itemize}
+
+\begin{conceito}{Euler/NS reativo com variável de progresso}
+Ao sistema de Euler adiciona-se a equação de progresso $c$ (0 = não queimado,
+1 = queimado), e a energia libera calor $\Delta h_c$ conforme $c$ avança:
+\begin{gather*}
+  \frac{\partial(\rho c)}{\partial t}+\nabla\cdot(\rho\mathbf u c)
+  =\nabla\cdot(\rho D_t\nabla c)+\dot\omega_c,\\
+  \dot\omega_c\sim\rho_u S_T|\nabla c| .
+\end{gather*}
+O fechamento de $S_T$ (Módulo 10) é o coração do modelo; a turbulência
+$u'$ vem do modelo $k$-$\varepsilon$ e da geração nos obstáculos.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: explosão reativa]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $c$ --- variável de progresso; $\rho_u$ --- densidade não queimada.
+  \item $\dot\omega_c$ --- taxa de reação [kg/(m$^3\cdot$s)]: ``massa que
+        cruza a frente'' por volume, $\rho_uS_T$ vezes a área de chama por
+        volume ($|\nabla c|$).
+  \item $D_t$ --- difusividade turbulenta; a energia recebe
+        $\dot\omega_c\,\Delta h_c$ como fonte de calor.
+\end{itemize}
+\origem Formulação de variável de progresso de Bray, Moss \& Libby (1977);
+fechamento por velocidade turbulenta (TFC) de Zimont; códigos de explosão
+offshore usam variações com a frente espessada numericamente para ocupar
+algumas células (ex.: o modelo ``$\beta$'' do FLACS).
+\end{dicionario}
+
+
+\begin{conceito}{Porosidade e resistência distribuída (PDR)}
+Num módulo real há milhares de tubos menores que a célula. A abordagem PDR
+(base do FLACS e de outros códigos de explosão):
+\begin{itemize}
+  \item cada célula tem \textbf{porosidade volumétrica} $\beta_v$ e de face
+        $\beta_f$ (fração aberta ao escoamento);
+  \item obstáculos subgrid geram \textbf{arrasto} ($\propto\rho|\mathbf u|\mathbf u$)
+        e \textbf{turbulência} adicional, e enrugam a chama;
+  \item obstáculos grandes são resolvidos na malha.
+\end{itemize}
+Consequência: a malha não pode ser refinada livremente --- os submodelos
+foram calibrados para certos tamanhos de célula relativos aos obstáculos.
+``Convergência de malha'' tem significado diferente aqui.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: PDR]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\beta_v$ --- fração do volume da célula aberta ao gás (0 a 1).
+  \item $\beta_f$ --- fração de cada face aberta ao escoamento.
+  \item Arrasto subgrid: $\mathbf F_D\approx-C_D\,\rho\,|\mathbf u|\,\mathbf u\,A_{\text{obs}}/V$,
+        com $A_{\text{obs}}$ a área projetada dos obstáculos na célula.
+\end{itemize}
+\origem A ideia de porosidade em CFD vem de trocadores de calor (Patankar \&
+Spalding, 1974; Sha et al., 1982); Bjørn Hjertager, no Chr.\ Michelsen
+Institute (Bergen), a adaptou para explosões nos anos 1980 --- semente do FLACS.
+\end{dicionario}
+
+
+\begin{conceito}{Análise probabilística de explosões}
+Normas offshore (ex.: NORSOK Z-013, anexo sobre simulação probabilística de
+explosões; ISO 13702) pedem:
+\begin{enumerate}
+  \item Muitos cenários de dispersão (vazão, direção, vento) $\rightarrow$
+        distribuição de nuvens (Q9) com frequências.
+  \item Modelo de ignição (probabilidade e tempo) $\rightarrow$ frequência
+        de explosão por tamanho de nuvem.
+  \item Simulações de explosão para um conjunto de nuvens e pontos de ignição
+        $\rightarrow$ sobrepressão em alvos.
+  \item \textbf{Curva de excedência}: frequência anual de exceder cada nível
+        de sobrepressão. A \textbf{carga acidental de projeto (DAL)} é tipicamente
+        a correspondente a $10^{-4}$/ano.
+\end{enumerate}
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: excedência]
+\[
+  F(\Delta P>p)=\sum_{i}f_i\,P_{\text{ign},i}\,
+  \Pr\!\left(\Delta P_i>p\right)
+\]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $f_i$ --- frequência do cenário de vazamento $i$ [1/ano].
+  \item $P_{\text{ign},i}$ --- probabilidade de ignição (e de ignição
+        \emph{retardada}, que gera explosão).
+  \item $\Pr(\Delta P_i>p)$ --- fração das simulações (pontos de ignição,
+        instantes) em que o alvo vê mais que $p$.
+\end{itemize}
+\origem Abordagem consolidada na indústria norueguesa após Piper Alpha e
+formalizada na NORSOK Z-013; ideia herdada da engenharia sísmica e
+estrutural (curvas de perigo).
+\end{dicionario}
+
+
+\begin{tarefa}{Aceleração de chama em tubo com obstáculos}
+\enunciado Estenda seu solver de Euler 1D (Módulo 12) com a variável de
+progresso $c$, liberação de calor e $S_T=S_L(1+A\,u'/S_L)$ (ou Gülder), onde
+$u'$ é aumentado localmente em zonas de obstáculo (modele como
+$u'=C_{\text{obs}}|u|$ nessas zonas e um valor de fundo fora delas). Ignite em
+uma extremidade fechada de um tubo de 10 m; a outra extremidade aberta.
+Compare: sem obstáculos; 5 obstáculos; 10 obstáculos.
+\entregaveis\ Diagrama $x$--$t$ da frente de chama; velocidade da chama vs.
+posição; histórico de pressão em três sensores; pico de sobrepressão vs.
+número de obstáculos.
+\criterio você observa e explica o ciclo de realimentação (velocidade da
+chama crescente ao atravessar obstáculos).
+\reflexao\ Varie $C_{\text{obs}}$ em $\pm50\%$. O pico de pressão muda de forma
+linear ou explosiva? O que isso revela sobre a sensibilidade de códigos de
+explosão aos seus submodelos?
+\end{tarefa}
+
+\begin{tarefa}{Curva de excedência e DAL}
+\enunciado Use os cenários da Tarefa do Módulo 9 (ou gere 200 sintéticos por
+amostragem de Latin Hypercube), cada um com frequência e Q9. Defina uma
+probabilidade de ignição dependente da vazão e uma função de resposta
+$\Delta P = f(Q9)$ calibrada com seus resultados do Módulo 12 ou da Tarefa
+anterior (com espalhamento aleatório para o ponto de ignição). Construa a
+curva de excedência num alvo (ex.: parede corta-fogo).
+\entregaveis\ Curva de excedência em escala log; DAL a $10^{-4}$/ano;
+intervalo de confiança por \emph{bootstrap}.
+\criterio pipeline reprodutível com semente aleatória fixada.
+\reflexao\ Que entrada (frequências de vazamento, probabilidade de ignição,
+função de resposta) mais move a DAL? Isso deveria mudar onde se investe
+esforço de CFD?
+\end{tarefa}
+
+\begin{tarefa}{(Opcional avançado) \texttt{XiFoam} em geometria simples}
+\enunciado No OpenFOAM, rode um caso de deflagração com \texttt{XiFoam} numa
+caixa com obstáculos (ex.: adaptando um tutorial de câmara com obstáculos).
+Compare a sobrepressão para nuvem estequiométrica e para $\phi=0{,}8$.
+\entregaveis\ Históricos de pressão; campo de $c$ em quatro instantes; tempo
+de CPU.
+\criterio simulação estável com CFL controlado e conservação de massa global.
+\reflexao\ O que seria necessário para usar este solver numa geometria de
+módulo real com 5000 tubos? Por que existe a abordagem PDR?
+\end{tarefa}
+
+\begin{professor}
+Em explosões, mais do que em qualquer outro tema deste curso, a confiança
+vem da validação contra experimentos em escala (programas de testes em
+escala real conduzidos nas décadas de 1990 e 2000 em geometrias offshore
+são a base dos códigos comerciais). Se alguém lhe mostrar um resultado de
+explosão em CFD sem dizer contra quais experimentos o código foi validado
+\emph{naquele regime de congestionamento}, faça essa pergunta. Educadamente,
+mas faça.
+\end{professor}
+
+\begin{critico}
+\begin{itemize}
+  \item A DAL a $10^{-4}$/ano depende de uma cadeia de modelos, cada um com
+        incerteza. A incerteza total é maior ou menor que a soma? Como
+        comunicá-la a quem projeta a estrutura?
+  \item Painéis de alívio, \emph{deluge} e redução de congestionamento:
+        quais mitigações o seu modelo 1D consegue representar, e quais não?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+variável de progresso / \emph{progress variable}; porosidade e resistência
+distribuída / \emph{porosity/distributed resistance, PDR}; aceleração de
+chama / \emph{flame acceleration}; realimentação / \emph{positive feedback};
+análise probabilística de explosão / \emph{probabilistic explosion analysis};
+curva de excedência / \emph{exceedance curve}; carga acidental de projeto /
+\emph{design accidental load, DAL}; probabilidade de ignição /
+\emph{ignition probability}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Arntzen, B. J. \emph{Modelling of Turbulence and Combustion for Simulation of Gas Explosions in Complex Geometries}. Tese de doutorado, NTNU, 1998.
+  \item Hjertager, B. H. Simulation of transient compressible turbulent reactive flows. \emph{Combust. Sci. Technol.}, 27:159--170, 1982.
+  \item Weller, H. G. et al. Application of a flame-wrinkling LES combustion model to a turbulent mixing layer. \emph{Proc. Combust. Inst.}, 27:899--907, 1998.
+  \item Standards Norway. \emph{NORSOK Z-013: Risk and Emergency Preparedness Assessment} (edição vigente).
+  \item ISO 13702. \emph{Petroleum and natural gas industries --- Control and mitigation of fires and explosions on offshore production installations}.
+  \item Oil \& Gas UK / Energy Institute. \emph{Fire and Explosion Guidance}, 2007.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Lea, C. J.; Ledin, H. S.} \emph{A Review of the State-of-the-Art in Gas Explosion Modelling}. HSL/2002/02, Health and Safety Laboratory, 2002. Panorama crítico de códigos, incluindo PDR.
+  \item \textbf{Arntzen (1998)}, caps.\ 2--4: a física e a numérica por trás do FLACS.
+  \item \textbf{Poinsot \& Veynante (2012)}, caps.\ sobre combustão pré-misturada turbulenta.
+  \item \textbf{Vinnem, J. E.} \emph{Offshore Risk Assessment}. Springer (edição mais recente). Como explosões entram no QRA offshore.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\part{Credibilidade, prática industrial e síntese}
+% ======================================================================
+
+\chapter{Verificação, validação e quantificação de incerteza}
+
+\objetivos
+\begin{itemize}
+  \item Distinguir verificação de código, verificação de solução e validação.
+  \item Aplicar o método das soluções manufaturadas (MMS) e o GCI.
+  \item Usar métricas estatísticas de avaliação de modelos de dispersão.
+  \item Propagar incertezas de entrada com amostragem e análise de sensibilidade.
+\end{itemize}
+
+\begin{conceito}{V\&V: as três perguntas}
+\begin{itemize}
+  \item \textbf{Verificação de código}: ``resolvo as equações corretamente?''
+        --- MMS: escolha uma solução analítica arbitrária, calcule o termo
+        fonte que ela exige, rode o código com esse termo e confirme a ordem
+        de convergência teórica.
+  \item \textbf{Verificação de solução}: ``quanto erro numérico há \emph{nesta}
+        simulação?'' --- estimativa de erro de discretização.
+  \item \textbf{Validação}: ``resolvo as equações \emph{certas}?'' ---
+        comparação com experimentos relevantes, com incertezas de ambos os lados.
+\end{itemize}
+\end{conceito}
+
+\begin{conceito}{Extrapolação de Richardson e GCI}
+Com três malhas de razão de refinamento constante $r$ e soluções
+$f_1$ (fina), $f_2$, $f_3$ (grossa):
+\begin{gather*}
+  p=\frac{\ln\left[(f_3-f_2)/(f_2-f_1)\right]}{\ln r},\\
+  f_{\text{ext}}=f_1+\frac{f_1-f_2}{r^p-1},\\
+  GCI_{\text{fina}}=\frac{F_s\,|(f_2-f_1)/f_1|}{r^p-1},
+\end{gather*}
+com fator de segurança $F_s=1{,}25$ para três malhas (Roache; Celik et al.,
+2008). Atenção: só vale na faixa assintótica e com convergência monotônica.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: GCI]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $f_1,f_2,f_3$ --- grandeza de interesse nas malhas fina, média e grossa.
+  \item $h=(V/N)^{1/3}$ --- tamanho representativo de célula em 3D.
+  \item $r=h_{\text{grossa}}/h_{\text{fina}}$ --- recomenda-se $r>1{,}3$.
+  \item $p$ --- ordem \emph{observada}; compare com a teórica.
+  \item $f_{\text{ext}}$ --- estimativa do valor em malha infinita.
+\end{itemize}
+\origem Lewis Fry Richardson (1911; ``\emph{deferred approach to the
+limit}'', 1927). Patrick Roache (1994) propôs o GCI para padronizar relatos de
+estudos de malha; Celik et al.\ (2008) o tornaram política editorial do
+\emph{Journal of Fluids Engineering}.
+\end{dicionario}
+
+
+\begin{conceito}{Métricas de avaliação de dispersão}
+Com $C_o$ observado e $C_p$ previsto (Hanna, Chang e colaboradores):
+\begin{gather*}
+  FB=\frac{\overline{C_o}-\overline{C_p}}{0{,}5(\overline{C_o}+\overline{C_p})},\qquad
+  NMSE=\frac{\overline{(C_o-C_p)^2}}{\overline{C_o}\,\overline{C_p}},\\
+  MG=\exp(\overline{\ln C_o}-\overline{\ln C_p}),\\
+  VG=\exp\left[\overline{(\ln C_o-\ln C_p)^2}\right],\\
+  FAC2=\text{fração com }0{,}5\le C_p/C_o\le2 .
+\end{gather*}
+Critérios frequentemente citados (Chang \& Hanna, 2004): $|FB|<0{,}3$,
+$0{,}7<MG<1{,}3$, $NMSE<1{,}5$, $VG<4$, $FAC2>0{,}5$. Bancos de dados
+clássicos: Prairie Grass (passivo), Thorney Island e Kit Fox (gás denso),
+Burro/Coyote (GNL). O \emph{Model Evaluation Protocol} para GNL (Ivings et
+al., 2007) é referência de procedimento.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: métricas]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $C_o$, $C_p$ --- concentrações observada e prevista, pareadas no
+        espaço e no tempo; a barra é a média sobre os pares.
+  \item $FB>0$ --- modelo \emph{subestima} em média; $FB<0$, superestima.
+  \item $NMSE$ --- espalhamento (dominado pelos valores altos).
+  \item $MG$, $VG$ --- versões logarítmicas de viés e espalhamento, adequadas
+        quando os dados variam ordens de grandeza.
+  \item $FAC2$ --- a mais robusta: insensível a poucos valores extremos.
+\end{itemize}
+\origem Steven Hanna e colaboradores (1989, 1993) consolidaram o conjunto
+avaliando modelos de gases perigosos contra experimentos de campo.
+\end{dicionario}
+
+
+\begin{tarefa}{MMS no seu código de volumes finitos}
+\enunciado Escolha $\phi_m(x,y)=\sin(\pi x)\cos(\pi y)$ (ou outra), derive o
+termo fonte para a equação de advecção-difusão do Módulo 3 e verifique a
+ordem com 4 malhas para cada esquema implementado.
+\entregaveis\ Derivação simbólica (pode usar \texttt{Symbolics.jl} ou SymPy);
+gráfico log-log; tabela de ordens.
+\criterio ordens teóricas recuperadas. Se não forem, você encontrou um bug
+--- documente-o e corrija.
+\reflexao\ Que tipos de erro a MMS \emph{não} detecta?
+\end{tarefa}
+
+\begin{tarefa}{GCI na cavidade}
+\enunciado Use as três malhas da Tarefa da cavidade (Módulo 4) para calcular
+$p$, $f_{\text{ext}}$ e GCI para: posição do centro do vórtice principal e
+$u_{\min}$ na linha vertical central.
+\entregaveis\ Tabela no formato de Celik et al. (2008).
+\criterio $p$ entre 1 e 2,5 e discussão se a convergência é monotônica.
+\reflexao\ Num estudo de dispersão, qual seria sua ``$f$''? Volume
+inflamável? Distância ao LFL? Q9? Quais delas convergem de forma monotônica?
+\end{tarefa}
+
+\begin{tarefa}{Validação com dados reais: Prairie Grass}
+\enunciado Obtenha os dados do experimento Prairie Grass (disponíveis na
+literatura e em repositórios de avaliação de modelos). Compare sua
+calculadora gaussiana (Módulo 6) com as concentrações observadas nos arcos
+de 50 a 800 m, agrupando por classe de estabilidade.
+\entregaveis\ Gráfico de dispersão $C_p\times C_o$ log-log com linhas de
+fator 2; tabela de $FB$, $NMSE$, $MG$, $VG$, $FAC2$ por estabilidade.
+\criterio métricas calculadas e comparadas aos critérios de aceitação.
+\reflexao\ Seu modelo ``passou''. Isso o valida para um módulo de FPSO? Defina
+\emph{domínio de validade}.
+\end{tarefa}
+
+\begin{tarefa}{Propagação de incerteza}
+\enunciado Escolha um cenário de dispersão (gaussiana ou seu código 2D) e
+trate como incertas: $C_d$, velocidade do vento, classe de estabilidade,
+$Sc_t$. Defina distribuições plausíveis, amostre por Latin Hypercube (500
+amostras) e calcule a distribuição da distância ao LFL. Estime índices de
+Sobol de primeira ordem.
+\entregaveis\ Histograma da saída; percentis 5/50/95; gráfico de índices de
+Sobol.
+\criterio resultados estáveis ao dobrar o número de amostras.
+\reflexao\ O valor ``determinístico'' que você calcularia com os parâmetros
+nominais está em qual percentil? Ele é conservador?
+\end{tarefa}
+
+\begin{critico}
+\begin{itemize}
+  \item Um modelo calibrado para um experimento é ``validado'' para ele?
+  \item Quantos relatórios de CFD de segurança você já leu que apresentavam
+        estimativa de erro numérico? Por que isso é raro, e o que mudaria se
+        fosse obrigatório?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+verificação / \emph{verification}; validação / \emph{validation};
+solução manufaturada / \emph{method of manufactured solutions, MMS};
+extrapolação de Richardson; índice de convergência de malha / \emph{grid
+convergence index, GCI}; viés fracional / \emph{fractional bias}; fator de 2
+/ \emph{FAC2}; quantificação de incerteza / \emph{uncertainty quantification,
+UQ}; hipercubo latino / \emph{Latin hypercube sampling}; índices de Sobol.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item Roache, P. J. \emph{Verification and Validation in Computational Science and Engineering}. Hermosa, 1998.
+  \item Celik, I. B. et al. Procedure for estimation and reporting of uncertainty due to discretization in CFD applications. \emph{J. Fluids Eng.}, 130(7):078001, 2008.
+  \item ASME. \emph{V\&V 20-2009: Standard for Verification and Validation in Computational Fluid Dynamics and Heat Transfer}.
+  \item Hanna, S. R.; Chang, J. C.; Strimaitis, D. G. Hazardous gas model evaluation with field observations. \emph{Atmos. Environ.}, 27A:2265--2285, 1993.
+  \item Chang, J. C.; Hanna, S. R. Air quality model performance evaluation. \emph{Meteorol. Atmos. Phys.}, 87:167--196, 2004.
+  \item Ivings, M. J.; Jagger, S. F.; Lea, C. J.; Webber, D. M. \emph{Evaluating Vapor Dispersion Models for Safety Analysis of LNG Facilities}. Fire Protection Research Foundation, 2007.
+  \item Saltelli, A. et al. \emph{Global Sensitivity Analysis: The Primer}. Wiley, 2008.
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Oberkampf, W. L.; Roy, C. J.} \emph{Verification and Validation in Scientific Computing}. Cambridge, 2010. O livro de referência; caps.\ 5--8 e 12--13.
+  \item \textbf{Roy, C. J.} Review of code and solution verification procedures for computational simulation. \emph{J.\ Comput.\ Phys.}, 205:131--156, 2005.
+  \item \textbf{Smith, R. C.} \emph{Uncertainty Quantification: Theory, Implementation, and Applications}. SIAM, 2014.
+  \item \textbf{Saltelli et al.\ (2008)}: índices de Sobol com exemplos práticos.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Do CFD ao QRA: prática industrial}
+
+\objetivos
+\begin{itemize}
+  \item Situar o CFD na cadeia HAZID $\rightarrow$ cenários $\rightarrow$
+        consequências $\rightarrow$ risco.
+  \item Decidir quando modelos integrais bastam e quando o CFD se justifica.
+  \item Redigir premissas e memorial de cálculo defensáveis.
+  \item Reconhecer armadilhas profissionais e éticas.
+\end{itemize}
+
+\begin{conceito}{Modelos integrais vs. CFD}
+\begin{itemize}
+  \item \textbf{Integrais} (ex.: PHAST e similares): rápidos, validados em
+        campo aberto, ideais para milhares de cenários de QRA em terra.
+        Não ``veem'' obstáculos nem confinamento.
+  \item \textbf{CFD}: geometria real, confinamento, ventilação, interação
+        entre jatos e estruturas. Caro; exige julgamento em malha, modelos e
+        cenários. Essencial offshore e em áreas congestionadas.
+  \item \textbf{Híbridos}: usar integrais para triagem e CFD para cenários
+        dimensionantes; ou CFD para gerar ``funções de resposta'' usadas
+        em milhares de cenários (\emph{surrogates}).
+\end{itemize}
+Medidas de risco: risco individual (IR), PLL (\emph{potential loss of life}),
+curvas F-N; critérios ALARP.
+\end{conceito}
+
+\begin{dicionario}[Dicionário da equação: medidas de risco]
+\begin{itemize}[leftmargin=*,nosep]
+  \item $IR=\sum_i f_i\,P_{\text{fatal},i}(x,y)$ --- risco individual num
+        ponto [1/ano]; multiplicado pela fração de presença vira IRPA.
+  \item $PLL=\sum_i f_i\,N_i$ --- perda potencial de vidas [fatalidades/ano].
+  \item Curva F-N --- frequência $F$ de eventos com $N$ ou mais fatalidades.
+  \item ALARP --- \emph{as low as reasonably practicable}.
+\end{itemize}
+\origem O conceito ALARP vem do direito britânico (caso \emph{Edwards
+v.\ National Coal Board}, 1949), incorporado pelo HSE; curvas F-N se
+popularizaram com o \emph{Reactor Safety Study} (WASH-1400, 1975) e os
+estudos de Canvey Island (1978).
+\end{dicionario}
+
+
+\begin{conceito}{O que um bom relatório de CFD de segurança contém}
+\begin{enumerate}
+  \item Objetivo e decisão de engenharia que o estudo suporta.
+  \item Geometria: fonte (modelo 3D, nível de detalhe), simplificações.
+  \item Cenários: critérios de seleção, frequências associadas.
+  \item Modelagem da fonte: vazões, transientes, pseudo-fonte.
+  \item Modelos físicos e numéricos: turbulência, esquemas, $Sc_t$, combustão,
+        radiação --- com justificativa e referência.
+  \item Malha e domínio: critérios, estudo de sensibilidade.
+  \item Validação do código no regime de interesse.
+  \item Resultados com incertezas e limitações explícitas.
+  \item Registro de premissas e de mudanças.
+\end{enumerate}
+\end{conceito}
+
+\begin{tarefa}{Memorial de premissas}
+\enunciado Escreva um ``memorial de cálculo'' (máx. 4 páginas) para um
+estudo hipotético de dispersão num módulo de separação de FPSO: escopo,
+cenários, modelagem da fonte, configuração do CFD, critérios de convergência,
+plano de verificação e validação, formato dos resultados.
+\entregaveis\ Documento revisável; lista numerada de premissas com
+justificativa e referência para cada uma.
+\criterio um colega consegue reproduzir o estudo só com o memorial.
+\reflexao\ Qual premissa você teria mais dificuldade de defender numa
+auditoria? Como reduziria esse risco?
+\end{tarefa}
+
+\begin{tarefa}{Integral vs. CFD no mesmo cenário}
+\enunciado Para um mesmo vazamento (vazão do Módulo 7), compare: (a) seu
+modelo de jato/gaussiana; (b) seu caso OpenFOAM do Módulo 8 sem obstáculos;
+(c) com obstáculos. Compare distância ao LFL, volume inflamável e Q9.
+\entregaveis\ Tabela comparativa; parágrafo de recomendação técnica.
+\criterio diferenças explicadas fisicamente.
+\reflexao\ Em que tipo de instalação a diferença entre (a) e (c) mudaria uma
+decisão de projeto (ex.: posição de tomada de ar do HVAC, distância de
+equipamentos)?
+\end{tarefa}
+
+\begin{armadilha}
+``Calibrar'' premissas até que o resultado caiba no critério de aceitação.
+Ajustar $Sc_t$, ponto de ignição ou malha \emph{depois} de ver o resultado,
+sem justificativa física independente, é viés de confirmação --- e em
+segurança de processos isso tem nome mais grave. Documente decisões
+\emph{antes} de rodar.
+\end{armadilha}
+
+\begin{critico}
+\begin{itemize}
+  \item Quem deve decidir o nível de conservadorismo de um estudo: o analista,
+        o cliente, o regulador?
+  \item Um resultado de CFD bonito pode reduzir a segurança de uma decisão?
+        Como?
+\end{itemize}
+\end{critico}
+
+\begin{chaves}
+análise de perigos / \emph{HAZID}; modelo integral / \emph{integral model};
+risco individual / \emph{individual risk}; PLL; curva F-N; ALARP; memorial de
+cálculo / \emph{calculation basis}; registro de premissas /
+\emph{assumptions register}; modelo substituto / \emph{surrogate model}.
+\end{chaves}
+
+\begin{refs}
+\begin{itemize}
+  \item CCPS. \emph{Guidelines for Chemical Process Quantitative Risk Analysis}. 2.\,ed. AIChE, 2000.
+  \item Casal, J. \emph{Evaluation of the Effects and Consequences of Major Accidents in Industrial Plants}. 2.\,ed. Elsevier, 2018.
+  \item Mannan, S. (ed.). \emph{Lees' Loss Prevention in the Process Industries}. 4.\,ed., 2012.
+  \item Standards Norway. \emph{NORSOK Z-013} (edição vigente).
+\end{itemize}
+\end{refs}
+
+\begin{aprofundar}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Vinnem, J. E.} \emph{Offshore Risk Assessment}, vols.\ 1 e 2. Springer (edição mais recente). Referência para QRA de instalações offshore, inclusive FPSO.
+  \item \textbf{Pasman, H. J.} \emph{Risk Analysis and Control for Industrial Processes --- Gas, Oil and Chemicals}. Butterworth-Heinemann, 2015.
+  \item \textbf{CCPS (2000)}, caps.\ 4--5: cálculo de risco e apresentação de resultados.
+  \item \textbf{HSE.} \emph{Reducing Risks, Protecting People (R2P2)}. HSE Books, 2001. A filosofia ALARP explicada pelo regulador.
+\end{itemize}
+\end{aprofundar}
+
+% ======================================================================
+\chapter{Projeto final integrado: um módulo de FPSO}
+
+\begin{professor}
+Este é o momento em que tudo se encontra. Não espero um estudo
+comercial: espero um estudo \emph{honesto}, em que cada número tenha origem
+rastreável, cada premissa esteja escrita e cada incerteza esteja ao menos
+estimada. Já vi projetos finais simples receberem nota máxima e projetos
+lindíssimos serem reprovados por não conseguirem responder ``de onde veio
+esse número?''.
+\end{professor}
+
+\section*{Descrição}
+Um módulo de separação simplificado (ex.: 30 m $\times$ 20 m $\times$ 10 m),
+com convés inferior e superior, dois vasos horizontais, um rack de tubulação
+representado por cilindros e uma parede corta-fogo num dos lados. Gás de
+processo com a composição do Módulo 10, a 60--80 bar.
+
+\section*{Etapas e entregáveis}
+\begin{enumerate}
+  \item \textbf{Cenários} (Mód. 6, 7): 8 direções de vento $\times$ 3 furos
+        $\times$ 2 orientações; vazões e durações com \emph{blowdown}.
+  \item \textbf{Dispersão CFD} (Mód. 5, 6, 8): ao menos 12 casos no OpenFOAM,
+        escolhidos com justificativa; os demais por modelo substituto treinado
+        nesses casos (regressão, interpolação ou ML simples).
+  \item \textbf{Detecção} (Mód. 9): layout ótimo com 2oo$N$ e análise de robustez.
+  \item \textbf{Explosão} (Mód. 12, 13): função de resposta $\Delta P(Q9)$
+        a partir do seu solver 1D e/ou Multi-Energia; curva de excedência na
+        parede corta-fogo; DAL.
+  \item \textbf{Incêndio} (Mód. 11): jato de fogo do furo médio atingindo o
+        vaso adjacente (modelo de chama sólida ou FDS); fluxo na parede.
+  \item \textbf{V\&V e incerteza} (Mód. 14): estudo de malha em um caso de
+        dispersão; incerteza propagada até a DAL.
+  \item \textbf{Relatório} (Mód. 15): máx. 25 páginas, no formato de memorial
+        e resultados; repositório com \emph{pipeline} reprodutível (um comando
+        regenera figuras e tabelas).
+  \item \textbf{Opcional}: reescrever em Rust o pós-processador (Q9,
+        detecção, excedência), com testes e \emph{benchmark} contra a versão
+        Julia --- base para uma ferramenta própria de consequências.
+\end{enumerate}
+
+\section*{Rubrica de avaliação}
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}lcX@{}}
+\toprule
+Critério & Peso & O que se espera\\
+\midrule
+Rastreabilidade & 25\% & Todo número tem origem: cálculo, referência ou premissa registrada.\\
+Física e modelagem & 20\% & Escolhas justificadas, coerentes com o regime do problema.\\
+Qualidade numérica & 20\% & Convergência, malha, conservação, V\&V documentados.\\
+Incerteza e limitações & 15\% & Quantificadas quando possível, discutidas sempre.\\
+Reprodutibilidade & 10\% & Repositório executa de ponta a ponta.\\
+Comunicação & 10\% & Recomendações claras para quem decide.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{critico}
+Releia a lista que você escreveu na Tarefa ``Primeiro protótipo de dispersão
+2D'' (Módulo 3). Quantos itens foram riscados? Quais continuam abertos, e
+quais você descobriu que nem sabia que existiam?
+\end{critico}
+
+% ======================================================================
+\appendix
+\chapter*{Apêndice A --- Glossário português/inglês}
+\addcontentsline{toc}{chapter}{Apêndice A --- Glossário português/inglês}
+\markboth{Glossário}{}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.47\linewidth}p{0.47\linewidth}@{}}
+\toprule
+Português & Inglês\\
+\midrule
+acoplamento pressão-velocidade & pressure-velocity coupling\\
+carga acidental de projeto & design accidental load (DAL)\\
+coeficiente de descarga & discharge coefficient\\
+congestionamento / confinamento & congestion / confinement\\
+corrente de gravidade & gravity current\\
+despressurização & blowdown / depressurisation\\
+difusão numérica & numerical diffusion\\
+escoamento crítico (bloqueado) & choked flow\\
+estabilidade atmosférica & atmospheric stability\\
+fator de forma & view factor\\
+fração de mistura & mixture fraction\\
+função de parede & wall function\\
+incêndio em poça & pool fire\\
+jato de fogo & jet fire\\
+jato subexpandido & under-expanded jet\\
+limitador de fluxo & flux limiter\\
+limite inferior de inflamabilidade & lower flammability limit (LFL/LEL)\\
+malha deslocada & staggered grid\\
+nuvem estequiométrica equivalente & equivalent stoichiometric cloud (ESC, Q9)\\
+número de Schmidt turbulento & turbulent Schmidt number\\
+perda de contenção & loss of containment\\
+poder emissivo de superfície & surface emissive power (SEP)\\
+porosidade/resistência distribuída & porosity/distributed resistance (PDR)\\
+pseudo-fonte & notional nozzle / pseudo-source\\
+sobrepressão & overpressure\\
+solução manufaturada & manufactured solution\\
+sub-relaxação & under-relaxation\\
+transição deflagração-detonação & deflagration-to-detonation transition (DDT)\\
+velocidade laminar de queima & laminar burning velocity\\
+verificação e validação & verification and validation (V\&V)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter*{Apêndice B --- Checklist de entregáveis}
+\addcontentsline{toc}{chapter}{Apêndice B --- Checklist de entregáveis}
+\markboth{Checklist}{}
+
+Marque cada tarefa apenas quando código, figuras, tabela e reflexão
+estiverem no repositório e no diário.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{0.70\linewidth}c@{}}
+\toprule
+Mód. & Tarefas & Feito\\
+\midrule
+0  & Ambiente e primeiro gráfico; autópsia de acidentes & $\square$\\
+J  & Ambiente reprodutível; TDMA; caça às alocações; dispatch & $\square$\\
+1  & Difusão 1D com três esquemas; von Neumann no papel & $\square$\\
+2  & Torneio de esquemas de advecção; viscosidade numérica & $\square$\\
+3  & Advecção-difusão 1D; protótipo de dispersão 2D & $\square$\\
+4  & Cavidade (Ghia); obstáculo e Strouhal & $\square$\\
+5  & Escalas no FPSO; canal 1D; \texttt{pitzDaily} com $Sc_t$ & $\square$\\
+6  & Pluma gaussiana; homogeneidade da CLA; CFD vs. gaussiana & $\square$\\
+7  & Fonte e \emph{blowdown}; pseudo-fontes & $\square$\\
+8  & \emph{Lock-exchange}; pós-processador Q9; jato na caixa & $\square$\\
+9  & Otimizador de detectores; robustez & $\square$\\
+10 & Cantera; diagrama de regimes & $\square$\\
+11 & Poça (chama sólida); RTE 1D; FDS com $D^*/\delta x$ & $\square$\\
+12 & Sod; explosão esférica e métodos empíricos & $\square$\\
+13 & Aceleração de chama 1D; curva de excedência; (XiFoam) & $\square$\\
+14 & MMS; GCI; Prairie Grass; UQ & $\square$\\
+15 & Memorial de premissas; integral vs. CFD & $\square$\\
+16 & Projeto final integrado & $\square$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter*{Apêndice C --- Estante essencial}
+\addcontentsline{toc}{chapter}{Apêndice C --- Estante essencial}
+\markboth{Estante essencial}{}
+
+Se você só puder ter dez livros sobre a mesa durante este curso:
+\begin{enumerate}
+  \item Versteeg \& Malalasekera --- \emph{An Introduction to CFD: The Finite Volume Method} (porta de entrada).
+  \item Ferziger, Perić \& Street --- \emph{Computational Methods for Fluid Dynamics} (rigor numérico).
+  \item LeVeque --- \emph{Finite Volume Methods for Hyperbolic Problems} (esquemas e choques).
+  \item Toro --- \emph{Riemann Solvers and Numerical Methods for Fluid Dynamics} (explosões numéricas).
+  \item Pope --- \emph{Turbulent Flows} (a física da turbulência).
+  \item Poinsot \& Veynante --- \emph{Theoretical and Numerical Combustion} (combustão em CFD).
+  \item Drysdale --- \emph{An Introduction to Fire Dynamics} (incêndios).
+  \item CCPS --- \emph{Guidelines for Vapor Cloud Explosion, Pressure Vessel Burst, BLEVE, and Flash Fire Hazards}.
+  \item TNO --- \emph{Yellow Book} (CPR 14E) (modelos de efeitos físicos).
+  \item Mannan --- \emph{Lees' Loss Prevention in the Process Industries} (a enciclopédia).
+\end{enumerate}
+
+\chapter*{Apêndice D --- Trilhas de leitura aprofundada}
+\addcontentsline{toc}{chapter}{Apêndice D --- Trilhas de leitura aprofundada}
+\markboth{Trilhas de leitura}{}
+
+\section*{Trilhas por objetivo}
+Leia na ordem indicada; cada livro prepara o seguinte.
+\begin{description}[leftmargin=0pt]
+  \item[Dominar a numérica.] LeVeque (2007) $\rightarrow$ LeVeque (2002)
+        $\rightarrow$ Patankar (1980) $\rightarrow$ Ferziger, Perić \&
+        Street (2020) $\rightarrow$ Moukalled et al.\ (2016) $\rightarrow$
+        Toro (2009).
+  \item[Entender a física.] Tennekes \& Lumley (1972) $\rightarrow$ Pope
+        (2000) $\rightarrow$ Stull (1988) $\rightarrow$ Turns (2012)
+        $\rightarrow$ Law (2006) $\rightarrow$ Poinsot \& Veynante (2012).
+  \item[Segurança aplicada.] Crowl \& Louvar (2019) $\rightarrow$
+        \emph{Yellow Book} (TNO) $\rightarrow$ CCPS VCE (2010) $\rightarrow$
+        Bjerketvedt et al.\ (1997) $\rightarrow$ Drysdale (2011)
+        $\rightarrow$ Vinnem (\emph{Offshore Risk Assessment}).
+  \item[Credibilidade.] Roache (1998) $\rightarrow$ Oberkampf \& Roy (2010)
+        $\rightarrow$ Saltelli et al.\ (2008).
+  \item[Ferramentas.] Think Julia $\rightarrow$ manual de Julia (Performance
+        Tips) $\rightarrow$ notas MIT 18.337 $\rightarrow$ OpenFOAM
+        \emph{User Guide} $\rightarrow$ FDS \emph{User's Guide}.
+\end{description}
+
+\section*{Periódicos para acompanhar}
+\begin{itemize}
+  \item \emph{Journal of Loss Prevention in the Process Industries} --- o
+        principal da área; dispersão, explosões e QRA.
+  \item \emph{Process Safety and Environmental Protection} (IChemE).
+  \item \emph{Process Safety Progress} (AIChE/CCPS) --- muito aplicado.
+  \item \emph{Journal of Hazardous Materials}.
+  \item \emph{Fire Safety Journal} e \emph{Fire Technology} --- incêndios.
+  \item \emph{Combustion and Flame}; \emph{Proceedings of the Combustion
+        Institute} --- combustão fundamental.
+  \item \emph{Atmospheric Environment}; \emph{Journal of Wind Engineering
+        and Industrial Aerodynamics} --- dispersão e CLA.
+  \item \emph{International Journal of Hydrogen Energy} --- segurança de
+        hidrogênio, cada vez mais relevante.
+\end{itemize}
+
+\section*{Conferências}
+IChemE \emph{Hazards} (Reino Unido); ISHPMIE (\emph{International Symposium on
+Hazards, Prevention and Mitigation of Industrial Explosions}); AIChE Global
+Congress on Process Safety; Mary Kay O'Connor Process Safety Center
+International Symposium (Texas A\&M); ICHS (\emph{International Conference on
+Hydrogen Safety}). Os anais são uma fonte rica de estudos de caso e de
+validação.
+
+\section*{Recursos gratuitos}
+\begin{itemize}
+  \item MIT OpenCourseWare 2.29 --- \emph{Numerical Fluid Mechanics}.
+  \item ``CFD Python: 12 steps to Navier--Stokes'' (Barba).
+  \item Guias de usuário, referência técnica e \emph{Validation Guide} do
+        FDS (NIST) --- o guia de validação é uma aula de como comparar
+        simulação e experimento.
+  \item OpenFOAM \emph{User Guide} e o fórum CFD Online.
+  \item NUREG-1824 (V\&V de modelos de incêndio, US NRC).
+\end{itemize}
+
+\section*{Como ler um artigo técnico}
+Use o método das três passadas (Keshav, ``How to read a paper'',
+\emph{ACM SIGCOMM Comput.\ Commun.\ Rev.}, 37(3), 2007): (1) título, resumo,
+figuras e conclusões --- 10 minutos para decidir se vale ler; (2) leitura
+completa sem se prender a derivações, anotando as hipóteses; (3) reproduza
+mentalmente (ou em código!) os resultados principais. Para cada artigo,
+registre no diário: \emph{qual problema, qual método, contra o que foi
+validado, quais as limitações admitidas e quais as não admitidas}.
+
+\begin{professor}
+Uma última palavra. CFD aplicado à segurança de processos é uma disciplina
+de \emph{humildade disciplinada}: humildade para admitir quanto não sabemos
+sobre a física de uma nuvem turbulenta queimando entre tubulações;
+disciplina para, mesmo assim, produzir números úteis, rastreáveis e honestos
+para quem precisa projetar, operar e voltar para casa em segurança. Bom
+estudo --- e mantenha o diário em dia.
+\end{professor}
+
+\end{document}

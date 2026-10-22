@@ -1,0 +1,32 @@
+# Saídas de compilação
+build/
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Quarto
+site/_site/
+site/.quarto/
+site/notebooks/
+
+# Node
+node_modules/
+
+# Python (Cantera, scripts auxiliares)
+.venv/
+__pycache__/
+
+# Nix
+result
+result-*
+.direnv/
+
+# Editores e sistema
+.vscode/
+.idea/
+*.swp
+.DS_Store
