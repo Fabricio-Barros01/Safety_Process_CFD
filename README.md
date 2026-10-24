@@ -42,6 +42,26 @@ O primeiro comando instala as versões exatas listadas em
 O protótipo dos laboratórios abre direto no navegador:
 `prototipo/laboratorio_cfd.html`.
 
+### Laboratórios
+
+Os laboratórios ficam em `site/labs/`, em módulos ES: uma pasta comum
+(gráficos, formatação de equações, controles, tema) e uma pasta por
+laboratório com `solver.js` (numérica pura, sem DOM), `ao-vivo.js` (TeX do
+painel “o passo numérico, com os números”) e `pagina.js` (DOM e eventos).
+
+Módulos ES não abrem por `file://`; para ver a página avulsa com os três
+laboratórios, sirva a pasta e abra `http://localhost:8000/`:
+
+```bash
+python3 -m http.server -d site/labs 8000
+```
+
+Testes (solvers e validação de TeX de todas as equações):
+
+```bash
+npm ci && npm test
+```
+
 ## Estrutura
 
 | Pasta | Conteúdo |
@@ -49,7 +69,7 @@ O protótipo dos laboratórios abre direto no navegador:
 | `curso/` | Fonte LaTeX do curso (17 módulos + Oficina de Julia) |
 | `prototipo/` | Protótipo dos laboratórios de difusão, advecção e pluma (referência para a Fase 1) |
 | `tarefas/` | Tarefas do curso resolvidas pelo autor e o ambiente Julia delas; `Tarefa0.1/` traz a solução analítica da difusão em meio semi-infinito (`erfc`) |
-| `site/` | Projeto Quarto do site e JavaScript dos laboratórios (a partir da Fase 1) |
+| `site/` | Projeto Quarto do site (Fase 3); `site/labs/` traz o JavaScript dos laboratórios |
 | `julia/` | Pacote de referência `CFDSeguranca.jl` (Fase 2) |
 | `notebooks/` | Notebooks Pluto, um por tarefa (Fase 4) |
 | `dados/` | Dados de validação, cada um com cabeçalho de fonte |

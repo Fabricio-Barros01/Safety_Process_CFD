@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laboratório numérico · CFD para segurança de processos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comum/labs.css">
+<script>
+window.MathJax = {
+  svg: { fontCache: "global" },
+  startup: {
+    ready() {
+      MathJax.startup.defaultReady();
+      MathJax.startup.promise.then(() => { window.__mjok = true; document.dispatchEvent(new Event("mathjax-pronto")); });
+    }
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" defer></script>
+<script type="module" src="laboratorio.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Laboratório numérico do minicurso</h1>
+  <p>Simulações que rodam no seu navegador. Mexa nos parâmetros, quebre os esquemas de propósito e compare com a solução exata. Cada aba corresponde a um módulo do curso.</p>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="difusao" aria-selected="true">Difusão e estabilidade</button>
+  <button role="tab" data-tab="adveccao" aria-selected="false">Advecção e esquemas</button>
+  <button role="tab" data-tab="pluma" aria-selected="false">Pluma gaussiana</button>
+</nav>
+
+<!-- ================= DIFUSÃO ================= -->
+<section class="lab active" id="lab-difusao" role="tabpanel">
+  <div class="stack">
+    <div class="panel">
+      <h2>Solução numérica e exata</h2>
+      <p class="hint">Equação do calor, u<sub>t</sub> = u<sub>xx</sub>, com u = 0 nas bordas.</p>
+      <canvas class="plot" id="cv-dif"></canvas>
+      <div class="legend"><span style="--c:var(--num)">numérica</span><span style="--c:var(--exact)">exata</span></div>
+    </div>
+    <div class="panel">
+      <h2>O passo numérico, com os números</h2>
+      <p class="hint">A fórmula do esquema escolhido com os valores atuais de r, e a conta feita no nó central. Atualiza enquanto a simulação roda.</p>
+      <div class="live" id="dif-live"></div>
+    </div>
+    <div class="panel">
+      <h2>Fator de amplificação G(kΔx)</h2>
+      <p class="hint">Quanto cada modo do erro é multiplicado por passo. Fora da faixa |G| ≤ 1, o modo cresce.</p>
+      <canvas class="plot small" id="cv-G"></canvas>
+    </div>
+    <div class="panel">
+      <h2>Discretização passo a passo</h2>
+      <p class="hint">Da equação contínua ao código que roda acima.</p>
+      <ol class="steps">
+        <li><strong>Malha</strong><p>Dividimos o domínio em N intervalos e o tempo em passos. A incógnita passa a ser um número em cada nó e instante:</p><div class="eq">\[x_j = j\,\Delta x,\qquad t^n = n\,\Delta t,\qquad u_j^n \approx u(x_j,t^n).\]</div></li>
+        <li><strong>Derivada no tempo</strong><p>Série de Taylor para frente no tempo:</p><div class="eq">\[u_j^{n+1} = u_j^n + \Delta t\,\frac{\partial u}{\partial t} + \frac{\Delta t^2}{2}\frac{\partial^2 u}{\partial t^2}+\dots\]\[\Rightarrow\quad \frac{\partial u}{\partial t} = \frac{u_j^{n+1}-u_j^n}{\Delta t} + \mathcal O(\Delta t).\]</div></li>
+        <li><strong>Derivada segunda no espaço</strong><p>Somando as expansões de \(u_{j+1}\) e \(u_{j-1}\) em torno de \(x_j\), os termos ímpares se cancelam:</p><div class="eq">\[u_{j+1}+u_{j-1} = 2u_j + \Delta x^2\,u_{xx} + \frac{\Delta x^4}{12}\,u_{xxxx}+\dots\]\[\Rightarrow\quad u_{xx} = \frac{u_{j+1}-2u_j+u_{j-1}}{\Delta x^2} + \mathcal O(\Delta x^2).\]</div></li>
+        <li><strong>FTCS: lado direito no tempo n</strong><div class="eq">\[\frac{u_j^{n+1}-u_j^n}{\Delta t} = \alpha\,\frac{u_{j+1}^n-2u_j^n+u_{j-1}^n}{\Delta x^2}\]\[\Rightarrow\quad u_j^{n+1} = u_j^n + r\,\big(u_{j+1}^n-2u_j^n+u_{j-1}^n\big),\qquad r=\frac{\alpha\,\Delta t}{\Delta x^2}.\]</div><p>Explícito: cada valor novo sai direto dos valores antigos.</p></li>
+        <li><strong>BTCS: lado direito no tempo n+1</strong><div class="eq">\[-r\,u_{j-1}^{n+1} + (1+2r)\,u_j^{n+1} - r\,u_{j+1}^{n+1} = u_j^n.\]</div><p>Implícito: os valores novos dependem uns dos outros. Escrevendo a equação para todos os nós internos surge um sistema tridiagonal \(\mathbf A\,\mathbf u^{n+1} = \mathbf u^n\).</p></li>
+        <li><strong>Crank–Nicolson e o método θ</strong><div class="eq">\[u_j^{n+1}-u_j^n = r\left[\theta\,\delta^2u_j^{n+1} + (1-\theta)\,\delta^2 u_j^n\right],\qquad \delta^2u_j = u_{j+1}-2u_j+u_{j-1}.\]</div><p>θ = 0 é o FTCS, θ = 1 é o BTCS e θ = ½ é o Crank–Nicolson, de 2.ª ordem no tempo.</p></li>
+        <li><strong>Resolver o sistema: algoritmo de Thomas (TDMA)</strong><p>Para \(a\,u_{i-1}+b\,u_i+c\,u_{i+1}=d_i\), eliminação para frente:</p><div class="eq">\[c'_1=\frac{c}{b},\quad d'_1=\frac{d_1}{b},\qquad c'_i=\frac{c}{b-a\,c'_{i-1}},\quad d'_i=\frac{d_i-a\,d'_{i-1}}{b-a\,c'_{i-1}},\]</div><p>e substituição para trás: \(u_m=d'_m\), \(u_i=d'_i-c'_i\,u_{i+1}\). O custo cresce linearmente com N.</p></li>
+        <li><strong>Estabilidade de von Neumann</strong><p>Substitua um modo de Fourier \(u_j^n = G^n e^{\mathrm i k j\Delta x}\) no FTCS e divida tudo por \(G^n e^{\mathrm i k j \Delta x}\):</p><div class="eq">\[G = 1 + r\left(e^{\mathrm i k\Delta x} - 2 + e^{-\mathrm i k\Delta x}\right) = 1 - 2r\,(1-\cos k\Delta x) = 1 - 4r\sin^2\frac{k\Delta x}{2}.\]</div><p>O pior caso é \(k\Delta x=\pi\): exigir \(G = 1-4r \ge -1\) dá \(r\le\tfrac12\). É exatamente o que o gráfico de G mostra.</p></li>
+      </ol>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Controles</h2>
+    <div class="ctrl"><label>Esquema</label>
+      <div class="seg" id="dif-esq">
+        <button data-v="ftcs" aria-pressed="true">FTCS</button>
+        <button data-v="btcs" aria-pressed="false">BTCS</button>
+        <button data-v="cn" aria-pressed="false">Crank–Nicolson</button>
+      </div></div>
+    <div class="ctrl"><label>Condição inicial</label>
+      <div class="seg" id="dif-ic">
+        <button data-v="seno" aria-pressed="true">Seno</button>
+        <button data-v="pulso" aria-pressed="false">Pulso</button>
+      </div></div>
+    <div class="ctrl"><label for="dif-r">r = αΔt/Δx² <output id="dif-r-o"></output></label>
+      <input type="range" id="dif-r" min="0.05" max="6" step="0.01" value="0.4"></div>
+    <div class="ctrl"><label for="dif-N">Células <output id="dif-N-o"></output></label>
+      <input type="range" id="dif-N" min="10" max="200" step="2" value="50"></div>
+    <div class="actions">
+      <button class="btn" id="dif-play">Rodar</button>
+      <button class="btn ghost" id="dif-reset">Reiniciar</button>
+    </div>
+    <dl class="readout">
+      <dt>Tempo</dt><dd id="dif-t">0</dd>
+      <dt>Passos</dt><dd id="dif-n">0</dd>
+      <dt>max |u|</dt><dd id="dif-max">0</dd>
+      <dt>Erro máximo</dt><dd id="dif-err">0</dd>
+    </dl>
+    <div class="status" id="dif-status"></div>
+    <h3>O que observar</h3>
+    <ul class="obs">
+      <li>Com FTCS, leve r de 0,50 para 0,52 e rode: o “serrote” nasce no modo de maior frequência.</li>
+      <li>Com pulso e Crank–Nicolson em r = 5, as oscilações quase não amortecem. Veja no gráfico de G por quê.</li>
+      <li>BTCS nunca explode, mas compare o erro com r = 0,4 e r = 5.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= ADVECÇÃO ================= -->
+<section class="lab" id="lab-adveccao" role="tabpanel">
+  <div class="stack">
+    <div class="panel">
+      <h2>Transporte periódico</h2>
+      <p class="hint">u<sub>t</sub> + u<sub>x</sub> = 0 em [0, 1]. O perfil deveria voltar intacto a cada volta.</p>
+      <canvas class="plot" id="cv-adv"></canvas>
+      <div class="legend"><span style="--c:var(--num)">numérica</span><span style="--c:var(--exact)">exata</span><span style="--c:var(--danger)">fora de [0, 1]</span></div>
+    </div>
+    <div class="panel">
+      <h2>O passo numérico, com os números</h2>
+      <p class="hint">A fórmula do esquema escolhido, aplicada no nó de maior gradiente (a frente do perfil), onde os esquemas mais se diferenciam.</p>
+      <div class="live" id="adv-live"></div>
+    </div>
+    <div class="panel">
+      <h2>Escreva seu próprio esquema</h2>
+      <p class="hint">O código abaixo é executado a cada passo quando “Meu esquema” está selecionado. Edite e clique em “Aplicar código”.</p>
+      <textarea id="adv-code" spellcheck="false"></textarea>
+      <div class="actions">
+        <button class="btn" id="adv-apply">Aplicar código</button>
+        <button class="btn ghost" id="adv-restore">Restaurar exemplo</button>
+      </div>
+      <div class="err" id="adv-err"></div>
+    </div>
+    <div class="panel">
+      <h2>Torneio de esquemas</h2>
+      <p class="hint">Roda todos os esquemas por exatamente uma volta com os parâmetros atuais.</p>
+      <div class="actions" style="margin-top:4px"><button class="btn" id="adv-tour">Rodar torneio</button></div>
+      <div class="tablewrap"><table id="adv-table"></table></div>
+    </div>
+    <div class="panel">
+      <h2>Discretização passo a passo</h2>
+      <p class="hint">Volumes finitos para a advecção, do balanço na célula aos limitadores.</p>
+      <ol class="steps">
+        <li><strong>Médias nas células</strong><p>Em volumes finitos a incógnita é a média de u em cada célula:</p><div class="eq">\[\bar u_j(t) = \frac{1}{\Delta x}\int_{x_{j-1/2}}^{x_{j+1/2}} u(x,t)\,dx.\]</div></li>
+        <li><strong>Balanço exato na célula</strong><p>Integrando \(u_t + a\,u_x = 0\) na célula e de \(t^n\) a \(t^{n+1}\):</p><div class="eq">\[\bar u_j^{n+1} = \bar u_j^n - \frac{\Delta t}{\Delta x}\left(F_{j+1/2}-F_{j-1/2}\right),\qquad F_{j+1/2}=\frac{1}{\Delta t}\int_{t^n}^{t^{n+1}} a\,u(x_{j+1/2},t)\,dt.\]</div><p>Até aqui nada foi aproximado. O que sai por uma face entra na vizinha, então a massa se conserva. Toda a arte está em estimar o fluxo F na face.</p></li>
+        <li><strong>Upwind</strong><p>Com a &gt; 0 a informação vem da esquerda, então usamos o valor da célula a montante: \(F_{j+1/2} = a\,u_j^n\).</p><div class="eq">\[u_j^{n+1} = u_j^n - C\,(u_j^n-u_{j-1}^n) = (1-C)\,u_j^n + C\,u_{j-1}^n,\qquad C=\frac{a\,\Delta t}{\Delta x}.\]</div></li>
+        <li><strong>Lax–Wendroff</strong><p>Taylor no tempo até 2.ª ordem, trocando \(u_t=-a\,u_x\) e \(u_{tt}=a^2u_{xx}\), com diferenças centradas:</p><div class="eq">\[u^{n+1} = u^n - a\,\Delta t\,u_x + \frac{a^2\Delta t^2}{2}\,u_{xx}\]\[\Rightarrow\quad u_j^{n+1} = u_j^n - \frac C2\,(u_{j+1}^n-u_{j-1}^n) + \frac{C^2}{2}\,(u_{j+1}^n-2u_j^n+u_{j-1}^n).\]</div></li>
+        <li><strong>Monotonicidade pelos coeficientes</strong><p>Escreva o esquema como \(u_j^{n+1}=\sum_k c_k\,u_{j+k}^n\). Se todos os \(c_k\) forem não negativos (e somarem 1), o valor novo é uma média ponderada dos antigos e não pode criar máximos ou mínimos novos.</p><div class="eq">\[\text{Upwind: } c_{-1}=C,\ c_0=1-C \qquad \text{Lax–Wendroff: } c_{+1}=\frac{C(C-1)}{2}\lt 0 \text{ para } 0\lt C\lt 1.\]</div><p>O teorema de Godunov generaliza isso: nenhum esquema linear de 2.ª ordem tem todos os coeficientes positivos.</p></li>
+        <li><strong>TVD: fluxo limitado</strong><p>Uma saída não linear: misturar o fluxo upwind com uma correção de alta ordem, controlada localmente por um limitador ψ:</p><div class="eq">\[\frac{F_{j+1/2}}{a} = u_j + \tfrac12\,\psi(r_j)\,(1-C)\,(u_{j+1}-u_j),\qquad r_j=\frac{u_j-u_{j-1}}{u_{j+1}-u_j}.\]</div><p>Com ψ = 0 volta o upwind; com ψ = 1, o Lax–Wendroff. Em regiões suaves r ≈ 1 e o limitador libera a alta ordem; em extremos r ≤ 0 e ele trava.</p></li>
+        <li><strong>Estabilidade (CFL)</strong><p>Von Neumann no upwind:</p><div class="eq">\[G = 1 - C\,\big(1-e^{-\mathrm ik\Delta x}\big),\qquad |G|^2 = 1 - 2C(1-C)(1-\cos k\Delta x).\]</div><p>|G| ≤ 1 para todo k se e somente se 0 ≤ C ≤ 1: a condição CFL.</p></li>
+        <li><strong>Equação modificada: por que o upwind achata</strong><div class="eq">\[u_t + a\,u_x = \underbrace{\frac{a\,\Delta x}{2}(1-C)}_{\nu_{\text{num}}}\,u_{xx} + \mathcal O(\Delta x^2).\]</div><p>O upwind resolve, na prática, uma advecção-difusão. Com C = 1 a difusão numérica some, o que explica o resultado “perfeito”.</p></li>
+      </ol>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Controles</h2>
+    <div class="ctrl"><label for="adv-esq">Esquema</label>
+      <select id="adv-esq">
+        <option value="upwind">Upwind de 1.ª ordem</option>
+        <option value="lw">Lax–Wendroff</option>
+        <option value="minmod">TVD minmod</option>
+        <option value="vanleer">TVD van Leer</option>
+        <option value="superbee">TVD superbee</option>
+        <option value="meu">Meu esquema (editor)</option>
+      </select></div>
+    <div class="ctrl"><label>Perfil inicial</label>
+      <div class="seg" id="adv-perfil">
+        <button data-v="quadrado" aria-pressed="true">Quadrado</button>
+        <button data-v="gauss" aria-pressed="false">Gaussiano</button>
+      </div></div>
+    <div class="ctrl"><label for="adv-C">Courant C <output id="adv-C-o"></output></label>
+      <input type="range" id="adv-C" min="0.05" max="1.2" step="0.05" value="0.8"></div>
+    <div class="ctrl"><label for="adv-N">Células <output id="adv-N-o"></output></label>
+      <input type="range" id="adv-N" min="40" max="400" step="20" value="100"></div>
+    <div class="actions">
+      <button class="btn" id="adv-play">Rodar</button>
+      <button class="btn ghost" id="adv-reset">Reiniciar</button>
+    </div>
+    <dl class="readout">
+      <dt>Voltas</dt><dd id="adv-v">0</dd>
+      <dt>Pico (exato = 1)</dt><dd id="adv-pk">1</dd>
+      <dt>Mínimo</dt><dd id="adv-min">0</dd>
+      <dt>Máximo</dt><dd id="adv-max">1</dd>
+      <dt>Erro L1</dt><dd id="adv-l1">0</dd>
+    </dl>
+    <div class="status" id="adv-status"></div>
+    <h3>O que observar</h3>
+    <ul class="obs">
+      <li>Upwind achata o pico: é a difusão numérica do Módulo 2.</li>
+      <li>Lax–Wendroff cria valores negativos e acima de 1. Em concentração de gás, isso seria fisicamente absurdo.</li>
+      <li>Com C = 1, o upwind é exato. Por que isso não ajuda em 3D?</li>
+      <li>Tente C = 1,1 com qualquer esquema explícito.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= PLUMA ================= -->
+<section class="lab" id="lab-pluma" role="tabpanel">
+  <div class="stack">
+    <div class="panel">
+      <h2>Vista em planta da nuvem</h2>
+      <p class="hint">Concentração na altura de observação z. Vento da esquerda para a direita.</p>
+      <canvas class="plot tall" id="cv-pl"></canvas>
+      <div class="legend"><span style="--c:var(--danger)">acima do LFL</span><span style="--c:var(--accent)">entre ½LFL e LFL</span><span style="--c:var(--heat)">abaixo de ½LFL (escala log)</span></div>
+    </div>
+    <div class="panel">
+      <h2>O cálculo, com os números</h2>
+      <p class="hint">A fórmula aplicada no ponto do eixo onde a nuvem atinge ½LFL. O resultado final deve dar metade do LFL.</p>
+      <div class="live" id="pl-live"></div>
+    </div>
+    <div class="panel">
+      <h2>Sensibilidade</h2>
+      <p class="hint">Distância até ½LFL no eixo da pluma, para as seis classes de estabilidade. O ponto marca o caso atual.</p>
+      <div class="ctrl" style="margin-top:0"><label for="pl-sx">Parâmetro no eixo horizontal</label>
+        <select id="pl-sx">
+          <option value="u">Velocidade do vento</option>
+          <option value="Q">Vazão liberada</option>
+          <option value="H">Altura da fonte</option>
+        </select></div>
+      <canvas class="plot" id="cv-sens"></canvas>
+      <div class="legend" id="sens-leg"></div>
+    </div>
+    <div class="panel">
+      <h2>Da equação de transporte à pluma gaussiana</h2>
+      <p class="hint">A pluma é a solução analítica da mesma equação de advecção-difusão que os códigos de CFD resolvem numericamente.</p>
+      <ol class="steps">
+        <li><strong>Equação de partida</strong><p>Transporte de massa do gás em regime permanente, vento u na direção x e difusividades turbulentas \(K_y\), \(K_z\):</p><div class="eq">\[u\,\frac{\partial C}{\partial x} = K_y\,\frac{\partial^2 C}{\partial y^2} + K_z\,\frac{\partial^2 C}{\partial z^2}.\]</div></li>
+        <li><strong>Pluma esbelta: x vira tempo</strong><p>A advecção em x domina a difusão em x. Trocando \(t = x/u\), sobra a equação da difusão no plano yz, a mesma da aba “Difusão”:</p><div class="eq">\[\frac{\partial C}{\partial t} = K_y\,C_{yy} + K_z\,C_{zz}.\]</div></li>
+        <li><strong>Solução fundamental</strong><p>Uma fonte pontual se espalha como uma gaussiana com variância \(\sigma^2 = 2Kt = 2Kx/u\). A amplitude sai da conservação do fluxo de massa, \(\iint u\,C\,dy\,dz = Q\):</p><div class="eq">\[C = \frac{Q}{2\pi u\,\sigma_y\sigma_z}\exp\!\left(-\frac{y^2}{2\sigma_y^2}-\frac{(z-H)^2}{2\sigma_z^2}\right).\]</div></li>
+        <li><strong>O solo: fonte imagem</strong><p>O gás não atravessa o chão (fluxo nulo em z = 0). Uma fonte espelhada em z = −H garante isso por simetria, e as duas gaussianas se somam:</p><div class="eq">\[\left[e^{-(z-H)^2/2\sigma_z^2} + e^{-(z+H)^2/2\sigma_z^2}\right].\]</div></li>
+        <li><strong>σ empírico</strong><p>Na atmosfera, K cresce com o tamanho da nuvem, então \(\sigma \propto \sqrt{x}\) não vale. Usam-se curvas ajustadas a experimentos para cada classe de estabilidade (Briggs, campo aberto), mostradas no cálculo ao vivo.</p></li>
+        <li><strong>De kg/m³ para %vol</strong><div class="eq">\[\%\text{vol} = \frac{C\,R\,T}{p\,M}\times 100,\qquad R = 8{,}314\ \tfrac{\text{J}}{\text{mol·K}},\ T = 288{,}15\ \text{K},\ p = 101\,325\ \text{Pa}.\]</div></li>
+        <li><strong>Como o laboratório mede a distância</strong><p>Varre o eixo da pluma (y = 0, z fixo) de 1 m a 6 km, com passo de 0,5 m até 200 m e de 2 m depois, e toma o maior x com %vol acima do limiar. O gráfico de sensibilidade repete isso para 28 valores do parâmetro e 6 classes. É, em miniatura, o que uma QRA faz com centenas de cenários.</p></li>
+      </ol>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Controles</h2>
+    <div class="ctrl"><label for="pl-gas">Gás</label>
+      <select id="pl-gas">
+        <option value="metano">Metano (LFL 5,0 %vol)</option>
+        <option value="propano">Propano (LFL 2,1 %vol)</option>
+      </select></div>
+    <div class="ctrl"><label>Classe de estabilidade</label>
+      <div class="seg" id="pl-cls">
+        <button data-v="A" aria-pressed="false">A</button><button data-v="B" aria-pressed="false">B</button>
+        <button data-v="C" aria-pressed="false">C</button><button data-v="D" aria-pressed="true">D</button>
+        <button data-v="E" aria-pressed="false">E</button><button data-v="F" aria-pressed="false">F</button>
+      </div></div>
+    <div class="ctrl"><label for="pl-Q">Vazão Q (kg/s) <output id="pl-Q-o"></output></label>
+      <input type="range" id="pl-Q" min="0.1" max="20" step="0.1" value="2"></div>
+    <div class="ctrl"><label for="pl-u">Vento u (m/s) <output id="pl-u-o"></output></label>
+      <input type="range" id="pl-u" min="1" max="15" step="0.5" value="5"></div>
+    <div class="ctrl"><label for="pl-H">Altura da fonte H (m) <output id="pl-H-o"></output></label>
+      <input type="range" id="pl-H" min="0" max="30" step="1" value="10"></div>
+    <div class="ctrl"><label for="pl-z">Altura de observação z (m) <output id="pl-z-o"></output></label>
+      <input type="range" id="pl-z" min="0" max="30" step="1" value="10"></div>
+    <dl class="readout">
+      <dt>Distância até LFL</dt><dd id="pl-dl">–</dd>
+      <dt>Distância até ½LFL</dt><dd id="pl-dh">–</dd>
+      <dt>Largura máx. da ½LFL</dt><dd id="pl-w">–</dd>
+    </dl>
+    <h3>O que observar</h3>
+    <ul class="obs">
+      <li>Troque D por F e veja a nuvem se alongar: estável mistura menos na vertical.</li>
+      <li>Com z = 0 e fonte alta, a nuvem inflamável pode nem tocar o solo.</li>
+      <li>Mais vento dilui mais, mas nem sempre encurta a nuvem na mesma proporção. Confira no gráfico de sensibilidade.</li>
+    </ul>
+    <p class="note">Modelo passivo de Briggs (campo aberto). Não vale perto de jatos pressurizados, para gás denso ou entre obstáculos (Módulos 6–8).</p>
+  </div>
+</section>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "cfd-seguranca-labs",
+  "private": true,
+  "description": "Laboratórios interativos do minicurso CFD para Segurança de Processos",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test \"testes-js/**/*.test.js\""
+  },
+  "devDependencies": {
+    "mathjax-full": "3.2.2"
+  }
+}
